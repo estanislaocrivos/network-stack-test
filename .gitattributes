@@ -1,0 +1,168 @@
+# Git attribute configuration for consistent file handling
+
+# -----------------------------------------------------------------------------
+# Default configuration
+# -----------------------------------------------------------------------------
+# Auto-detect text files and normalize line endings to LF
+* text=auto eol=lf
+
+# -----------------------------------------------------------------------------
+# Source code - always text with LF
+# -----------------------------------------------------------------------------
+*.c text eol=lf diff=c
+*.h text eol=lf diff=c
+*.cpp text eol=lf diff=cpp
+*.hpp text eol=lf diff=cpp
+*.cc text eol=lf diff=cpp
+*.cxx text eol=lf diff=cpp
+*.c++ text eol=lf diff=cpp
+*.hh text eol=lf diff=cpp
+*.hxx text eol=lf diff=cpp
+*.inl text eol=lf diff=cpp
+
+# Assembly
+*.s text eol=lf
+*.S text eol=lf
+*.asm text eol=lf
+
+# Linker scripts
+*.ld text eol=lf
+*.lds text eol=lf
+*.icf text eol=lf
+
+# -----------------------------------------------------------------------------
+# Build and configuration
+# -----------------------------------------------------------------------------
+Makefile text eol=lf
+*.mk text eol=lf
+*.make text eol=lf
+CMakeLists.txt text eol=lf
+*.cmake text eol=lf
+*.in text eol=lf
+
+# Scripts
+*.sh text eol=lf
+*.bash text eol=lf
+*.py text eol=lf diff=python
+*.rb text eol=lf diff=ruby
+*.pl text eol=lf diff=perl
+
+# Windows scripts (keep CRLF)
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# -----------------------------------------------------------------------------
+# Configuration and data
+# -----------------------------------------------------------------------------
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.xml text eol=lf
+*.toml text eol=lf
+*.ini text eol=lf
+*.cfg text eol=lf
+*.conf text eol=lf
+*.config text eol=lf
+
+# Editor configs
+.editorconfig text eol=lf
+.clang-format text eol=lf
+.clang-tidy text eol=lf
+.clangd text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+
+# -----------------------------------------------------------------------------
+# Documentation
+# -----------------------------------------------------------------------------
+*.md text eol=lf diff=markdown
+*.txt text eol=lf
+*.rst text eol=lf
+*.adoc text eol=lf
+LICENSE text eol=lf
+README text eol=lf
+CHANGELOG text eol=lf
+AUTHORS text eol=lf
+CONTRIBUTING text eol=lf
+Doxyfile text eol=lf
+
+# -----------------------------------------------------------------------------
+# Binaries - never modify
+# -----------------------------------------------------------------------------
+# Embedded executables
+*.elf binary
+*.bin binary
+*.hex binary
+*.srec binary
+*.s19 binary
+*.mot binary
+
+# Images
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.bmp binary
+*.svg text eol=lf
+
+# Compressed files
+*.zip binary
+*.tar binary
+*.gz binary
+*.7z binary
+*.rar binary
+
+# Libraries
+*.a binary
+*.lib binary
+*.so binary
+*.dll binary
+*.dylib binary
+
+# Other binaries
+*.pdf binary
+*.o binary
+*.obj binary
+
+# -----------------------------------------------------------------------------
+# Files that should not have text diff
+# -----------------------------------------------------------------------------
+*.bin -diff
+*.elf -diff
+*.hex -diff
+*.a -diff
+*.lib -diff
+
+# -----------------------------------------------------------------------------
+# Linguist (for GitHub statistics)
+# -----------------------------------------------------------------------------
+# Mark vendor/third-party as vendored to exclude from statistics
+Drivers/* linguist-vendored
+Middlewares/* linguist-vendored
+CMSIS/* linguist-vendored
+vendor/* linguist-vendored
+
+# Mark generated files
+*.gen.c linguist-generated
+*.gen.h linguist-generated
+*_generated.c linguist-generated
+*_generated.h linguist-generated
+
+# -----------------------------------------------------------------------------
+# Merge strategies
+# -----------------------------------------------------------------------------
+# Files that should always be resolved manually
+*.lock merge=binary
+project.yml merge=union
+
+# -----------------------------------------------------------------------------
+# Export ignore (for git archive)
+# -----------------------------------------------------------------------------
+.gitattributes export-ignore
+.gitignore export-ignore
+.github export-ignore
+.vscode export-ignore
+test export-ignore
+docs export-ignore

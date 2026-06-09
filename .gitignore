@@ -1,0 +1,221 @@
+# Build artifacts
+build/
+out/
+bin/
+obj/
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+
+# Embedded executables and binaries
+*.elf
+*.bin
+*.hex
+*.srec
+*.s19
+*.s37
+*.mot
+
+# Map files and listings
+*.map
+*.lst
+*.lss
+*.sym
+
+# Dependency files
+*.d
+*.dep
+
+# Precompiled headers
+*.gch
+*.pch
+
+# IDEs and Editors
+
+# VSCode
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# CLion / JetBrains
+.idea/
+*.iml
+cmake-build-*/
+
+# Eclipse
+.project
+.cproject
+.settings/
+.metadata/
+
+# STM32CubeIDE
+Debug/
+Release/
+*.launch
+
+# Keil uVision
+*.uvoptx
+*.uvprojx
+*.uvguix.*
+Objects/
+Listings/
+RTE/
+
+# IAR Embedded Workbench
+settings/
+*.dep
+*.ewd
+*.ewp
+*.eww
+*.ewt
+Debug/
+Release/
+
+# Segger Embedded Studio
+*.emSession
+
+# Vim/Neovim
+*.swp
+*.swo
+*~
+.netrwhist
+tags
+.tags
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Analysis and testing tools
+
+# Ceedling / Unity
+build/
+build/artifacts/
+build/logs/
+build/test/
+
+# Coverage
+*.gcno
+*.gcda
+*.gcov
+coverage/
+coverage.info
+htmlcov/
+
+# Valgrind
+*.valgrind
+vgcore.*
+callgrind.out.*
+massif.out.*
+
+# Cppcheck
+*.cppcheck
+
+# Clang
+*.plist
+compile_commands.json
+
+# AddressSanitizer / ThreadSanitizer
+*.asan
+*.tsan
+*.msan
+
+# Generated documentation
+docs/html/
+docs/latex/
+docs/xml/
+doxygen_warning.log
+
+# Python (for build/test scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+ENV/
+.env
+
+# Operating System
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.Trash-*
+
+# Miscellaneous
+
+# Backups
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+.temp/
+tmp/
+
+# Core dumps
+core
+core.*
+
+# Lock files
+*.lock
+!package-lock.json
+!Pipfile.lock
+
+# Secrets and credentials (NEVER commit!)
+*.pem
+*.key
+*.crt
+*.p12
+secrets/
+.secrets
+credentials/
+
+# Firmware vendor/third-party (optional, uncomment if applicable)
+# Drivers/
+# Middlewares/
+# CMSIS/
+
+# Scripts
+# scripts/
+
+# Miscellaneous files
+PROGRESS.md

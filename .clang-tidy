@@ -1,0 +1,156 @@
+# Clang-Tidy Configuration
+# https://clang.llvm.org/extra/clang-tidy/
+#
+# Run: clang-tidy --config-file=.clang-tidy src/*.c
+
+---
+# Enabled checks
+Checks: >
+  -*,
+  bugprone-*,
+  cert-*,
+  clang-analyzer-*,
+  misc-*,
+  performance-*,
+  portability-*,
+  readability-identifier-naming,
+  readability-redundant-*,
+  readability-simplify-*,
+  readability-magic-numbers,
+  readability-function-cognitive-complexity,
+  -bugprone-easily-swappable-parameters,
+  -cert-dcl37-c,
+  -cert-dcl51-cpp,
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
+  -misc-no-recursion,
+  -readability-identifier-length,
+
+# Treat warnings as errors for safety-critical categories
+WarningsAsErrors: "bugprone-*,cert-*,clang-analyzer-*"
+
+# Only analyze project headers (skip external libraries and toolchain headers)
+HeaderFilterRegex: "^(src|inc)/.*"
+
+# Output format
+FormatStyle: file
+
+# Check-specific options
+CheckOptions:
+  # ---- Naming: constants & macros ----
+  - key: readability-identifier-naming.GlobalConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.GlobalConstantPrefix
+    value: ""
+
+  - key: readability-identifier-naming.StaticConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.StaticConstantPrefix
+    value: ""
+
+  - key: readability-identifier-naming.ConstexprVariableCase
+    value: UPPER_CASE
+
+  - key: readability-identifier-naming.MacroDefinitionCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.MacroDefinitionPrefix
+    value: ""
+
+  - key: readability-identifier-naming.EnumConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.EnumConstantPrefix
+    value: ""
+
+  # ---- Naming: functions ----
+  - key: readability-identifier-naming.FunctionCase
+    value: lower_case
+  - key: readability-identifier-naming.FunctionPrefix
+    value: ""
+
+  - key: readability-identifier-naming.StaticFunctionCase
+    value: lower_case
+
+  # ---- Naming: variables ----
+  - key: readability-identifier-naming.GlobalVariableCase
+    value: lower_case
+  - key: readability-identifier-naming.GlobalVariablePrefix
+    value: g_
+
+  - key: readability-identifier-naming.StaticVariableCase
+    value: lower_case
+  - key: readability-identifier-naming.StaticVariablePrefix
+    value: g_
+
+  - key: readability-identifier-naming.LocalVariableCase
+    value: lower_case
+  - key: readability-identifier-naming.LocalVariablePrefix
+    value: ""
+
+  - key: readability-identifier-naming.ParameterCase
+    value: lower_case
+  - key: readability-identifier-naming.ParameterPrefix
+    value: ""
+
+  - key: readability-identifier-naming.MemberCase
+    value: lower_case
+
+  # ---- Naming: types ----
+  # struct/enum: lower_case, NO suffix (e.g. `struct adc`, `enum gpio_type`)
+  - key: readability-identifier-naming.StructCase
+    value: lower_case
+  - key: readability-identifier-naming.StructPrefix
+    value: ""
+  - key: readability-identifier-naming.StructSuffix
+    value: ""
+
+  - key: readability-identifier-naming.EnumCase
+    value: lower_case
+  - key: readability-identifier-naming.EnumPrefix
+    value: ""
+  - key: readability-identifier-naming.EnumSuffix
+    value: ""
+
+  # typedef: lower_case with `_t` suffix (e.g. `task_fn_t`, `sys_control_reg_t`)
+  - key: readability-identifier-naming.TypedefCase
+    value: lower_case
+  - key: readability-identifier-naming.TypedefSuffix
+    value: _t
+
+  # Anonymous unions inside typedefs do not trigger this; left permissive.
+  - key: readability-identifier-naming.UnionCase
+    value: lower_case
+
+  # ---- Performance ----
+  - key: performance-unnecessary-value-param.AllowedTypes
+    value: ""
+
+  # ---- Misc ----
+  - key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
+    value: true
+
+  # ---- Cert ----
+  - key: cert-err33-c.CheckedFunctions
+    value: ""
+
+  # ---- Bugprone ----
+  - key: bugprone-argument-comment.StrictMode
+    value: true
+  - key: bugprone-assert-side-effect.AssertMacros
+    value: "assert,ASSERT"
+  - key: bugprone-sizeof-expression.WarnOnSizeOfIntegerExpression
+    value: true
+
+  # ---- Readability ----
+  # Magic numbers: allow values common in embedded register/bit work.
+  - key: readability-magic-numbers.IgnoredIntegerValues
+    value: "0;1;2;3;4;5;6;7;8;15;16;31;32;64;127;128;255;256;1000;1024;4096;65535"
+  - key: readability-magic-numbers.IgnorePowersOf2IntegerValues
+    value: true
+  - key: readability-magic-numbers.IgnoreAllFloatingPointValues
+    value: true
+
+  # Cognitive complexity: ISR handlers are required to stay simple; main()
+  # initialization is large by nature — keep threshold permissive for now.
+  - key: readability-function-cognitive-complexity.Threshold
+    value: 30
+  - key: readability-function-cognitive-complexity.IgnoreMacros
+    value: true

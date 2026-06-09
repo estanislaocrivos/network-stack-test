@@ -1,0 +1,70 @@
+# Clangd Language Server Configuration
+# https://clangd.llvm.org/config
+
+# Compile flags applied to all files
+CompileFlags:
+  Add:
+    # Strict warnings
+    - -Wall
+    - -Wextra
+    - -Wpedantic
+    - -Wshadow
+    - -Wconversion
+    - -Wsign-conversion
+    - -Wdouble-promotion
+    - -Wformat=2
+    - -Wundef
+    - -Wstrict-prototypes
+    - -Wmissing-prototypes
+    - -Wold-style-definition
+    # C standard
+    - -std=c99
+    # Typical embedded flags
+    - -fno-common
+    - -ffunction-sections
+    - -fdata-sections
+  Remove:
+    # Remove flags that clangd doesn't understand (GCC ARM specific)
+    - -mcpu=*
+    - -mthumb
+    - -mfloat-abi=*
+    - -mfpu=*
+    - --specs=*
+  # Directory where to look for compile_commands.json
+  CompilationDatabase: build/
+
+# Diagnostics
+Diagnostics:
+  # Warn about unused includes
+  UnusedIncludes: Strict
+  # Warn about unknown pragmas
+  ClangTidy:
+    Add:
+      - bugprone-*
+      - cert-*
+      - misc-*
+      - performance-*
+    Remove:
+      - bugprone-easily-swappable-parameters
+      - misc-no-recursion
+
+# Index
+Index:
+  # Index files in background
+  Background: Build
+  # Save index to disk for faster loads
+  StandardLibrary: No
+
+# Hover and completion
+Hover:
+  ShowAKA: Yes
+
+Completion:
+  AllScopes: Yes
+
+# Inlay hints (inferred types, parameter names)
+InlayHints:
+  Enabled: Yes
+  ParameterNames: Yes
+  DeducedTypes: Yes
+  Designators: Yes
