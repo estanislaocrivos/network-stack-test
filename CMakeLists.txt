@@ -51,6 +51,11 @@ file(GLOB_RECURSE APP_SOURCES
     ${CMAKE_SOURCE_DIR}/src/*.c
 )
 
+# External driver sources
+set(DRIVER_SOURCES
+    ${CMAKE_SOURCE_DIR}/external/c-libraries/drivers/stm32f4xx/src/usart.c
+)
+
 if(NOT APP_SOURCES)
     message(FATAL_ERROR "No source files found in src/")
 endif()
@@ -87,6 +92,7 @@ set(INCLUDE_DIRS
 # =============================================================================
 add_executable(${PROJECT_NAME}.elf
     ${APP_SOURCES}
+    ${DRIVER_SOURCES}
     ${STARTUP_FILE}
     ${SYSTEM_FILE}
 )
@@ -96,6 +102,7 @@ target_include_directories(${PROJECT_NAME}.elf PRIVATE ${INCLUDE_DIRS})
 # Define MCU for ST headers (required to select correct register definitions)
 target_compile_definitions(${PROJECT_NAME}.elf PRIVATE
     ${MCU}
+    STM32F4XX_PCLK1_HZ=42000000UL
 )
 
 # =============================================================================
