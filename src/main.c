@@ -1,10 +1,9 @@
 #include "main.h"
 
 #include "../external/c-libraries/drivers/stm32f4xx/inc/gpio.h"
+#include "../external/c-libraries/drivers/stm32f4xx/inc/mcu.h"
 #include "../external/c-libraries/drivers/stm32f4xx/inc/usart.h"
-#include "../external/c-libraries/libraries/embedded-hal/inc/embedded_hal.h"
 #include "clock.h"
-#include "pinout.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -13,10 +12,8 @@ int main(void)
 {
     clock_init(CLOCK_84MHZ);
 
-    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
-
-    GPIOA->MODER  = GPIOA_MODER_CONFIG;
-    GPIOA->AFR[0] = GPIOA_AFRL_CONFIG;
+    MCU_DEFINE(mcu, &stm32f4xx_mcu_ops);
+    mcu.ops->initialize(&mcu);
 
     SERIAL_DEFINE(serial_log, &USART2_OPS, 9600, 8, 'N', 1);
     serial_log.ops->initialize(&serial_log);

@@ -54,6 +54,8 @@ file(GLOB_RECURSE APP_SOURCES
 # External driver sources
 set(DRIVER_SOURCES
     ${CMAKE_SOURCE_DIR}/external/c-libraries/drivers/stm32f4xx/src/usart.c
+    ${CMAKE_SOURCE_DIR}/external/c-libraries/drivers/stm32f4xx/src/gpio.c
+    ${CMAKE_SOURCE_DIR}/external/c-libraries/drivers/stm32f4xx/src/mcu.c
 )
 
 if(NOT APP_SOURCES)
@@ -103,6 +105,7 @@ target_include_directories(${PROJECT_NAME}.elf PRIVATE ${INCLUDE_DIRS})
 target_compile_definitions(${PROJECT_NAME}.elf PRIVATE
     ${MCU}
     STM32F4XX_PCLK1_HZ=42000000UL
+    PINOUT_CONFIG_HEADER="pinout.h"
 )
 
 # =============================================================================
