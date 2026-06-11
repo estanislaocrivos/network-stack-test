@@ -87,6 +87,9 @@ set(INCLUDE_DIRS
     ${CMAKE_SOURCE_DIR}/include
     ${CMSIS_PATH}
     ${DEVICE_PATH}/Include
+    ${CMAKE_SOURCE_DIR}/external/c-libraries/drivers/stm32f4xx/inc
+    ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/embedded-hal/inc
+    ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/inc
 )
 
 # =============================================================================

@@ -3,10 +3,10 @@
 
 /* ========================================================================== */
 
-#include "../external/c-libraries/drivers/stm32f4xx/inc/stm32f4xx_gpio.h"
-#include "../external/c-libraries/drivers/stm32f4xx/inc/stm32f4xx_mcu.h"
-#include "../external/c-libraries/drivers/stm32f4xx/inc/stm32f4xx_spi.h"
-#include "../external/c-libraries/drivers/stm32f4xx/inc/stm32f4xx_usart.h"
+#include "stm32f4xx_gpio.h"
+#include "stm32f4xx_mcu.h"
+#include "stm32f4xx_spi.h"
+#include "stm32f4xx_usart.h"
 
 /* ========================================================================== */
 

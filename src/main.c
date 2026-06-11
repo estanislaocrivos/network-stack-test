@@ -1,8 +1,5 @@
 #include "main.h"
 
-#include "../external/c-libraries/drivers/stm32f4xx/inc/stm32f4xx_gpio.h"
-#include "../external/c-libraries/drivers/stm32f4xx/inc/stm32f4xx_mcu.h"
-#include "../external/c-libraries/drivers/stm32f4xx/inc/stm32f4xx_usart.h"
 #include "clock.h"
 #include "platform.h"
 
