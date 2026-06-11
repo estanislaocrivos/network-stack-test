@@ -53,9 +53,9 @@ file(GLOB_RECURSE APP_SOURCES
 
 # External driver sources
 set(DRIVER_SOURCES
-    ${CMAKE_SOURCE_DIR}/external/c-libraries/drivers/stm32f4xx/src/usart.c
-    ${CMAKE_SOURCE_DIR}/external/c-libraries/drivers/stm32f4xx/src/gpio.c
-    ${CMAKE_SOURCE_DIR}/external/c-libraries/drivers/stm32f4xx/src/mcu.c
+    ${CMAKE_SOURCE_DIR}/external/c-libraries/drivers/stm32f4xx/src/stm32f4xx_usart.c
+    ${CMAKE_SOURCE_DIR}/external/c-libraries/drivers/stm32f4xx/src/stm32f4xx_gpio.c
+    ${CMAKE_SOURCE_DIR}/external/c-libraries/drivers/stm32f4xx/src/stm32f4xx_mcu.c
 )
 
 if(NOT APP_SOURCES)

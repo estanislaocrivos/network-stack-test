@@ -1,9 +1,10 @@
 #include "main.h"
 
-#include "../external/c-libraries/drivers/stm32f4xx/inc/gpio.h"
-#include "../external/c-libraries/drivers/stm32f4xx/inc/mcu.h"
-#include "../external/c-libraries/drivers/stm32f4xx/inc/usart.h"
+#include "../external/c-libraries/drivers/stm32f4xx/inc/stm32f4xx_gpio.h"
+#include "../external/c-libraries/drivers/stm32f4xx/inc/stm32f4xx_mcu.h"
+#include "../external/c-libraries/drivers/stm32f4xx/inc/stm32f4xx_usart.h"
 #include "clock.h"
+#include "platform.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -12,13 +13,19 @@ int main(void)
 {
     clock_init(CLOCK_84MHZ);
 
-    MCU_DEFINE(mcu, &stm32f4xx_mcu_ops);
+    struct mcu mcu = {.ops = PLATFORM_MCU_OPS, .was_initialized = false};
     mcu.ops->initialize(&mcu);
 
-    SERIAL_DEFINE(serial_log, &USART2_OPS, 9600, 8, 'N', 1);
+    struct serial serial_log
+        = {.ops             = PLATFORM_USART2_OPS,
+           .baud_rate       = 9600,
+           .data_bits       = 8,
+           .parity          = 'N',
+           .stop_bits       = 1,
+           .was_initialized = false};
     serial_log.ops->initialize(&serial_log);
 
-    const uint8_t msg[] = "hello\r\n";
+    const uint8_t msg[] = "Hello, world!\r\n";
 
     while (1)
     {

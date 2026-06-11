@@ -3,70 +3,70 @@
 
 /* ========================================================================== */
 
-#include "../external/c-libraries/drivers/stm32f4xx/inc/gpio.h"
+#include "../external/c-libraries/drivers/stm32f4xx/inc/stm32f4xx_gpio.h"
 
 /* ========================================================================== */
 
 /* PORT A */
-#define GPIO_A0  PIN_NC
-#define GPIO_A1  PIN_NC
-#define GPIO_A2  PIN_AF        /* USART2 TX */
-#define GPIO_A3  PIN_AF        /* USART2 RX */
-#define GPIO_A4  PIN_NC
-#define GPIO_A5  PIN_DO        /* LED LD2 */
-#define GPIO_A6  PIN_NC
-#define GPIO_A7  PIN_NC
-#define GPIO_A8  PIN_NC
-#define GPIO_A9  PIN_NC
-#define GPIO_A10 PIN_NC
-#define GPIO_A11 PIN_NC
-#define GPIO_A12 PIN_NC
-#define GPIO_A13 PIN_NC
-#define GPIO_A14 PIN_NC
-#define GPIO_A15 PIN_NC
+#define GPIO_A0     PIN_NC
+#define GPIO_A1     PIN_NC
+#define GPIO_A2     PIN_AF /* USART2 TX */
+#define GPIO_A3     PIN_AF /* USART2 RX */
+#define GPIO_A4     PIN_NC
+#define GPIO_A5     PIN_DO /* LED LD2 */
+#define GPIO_A6     PIN_NC
+#define GPIO_A7     PIN_NC
+#define GPIO_A8     PIN_NC
+#define GPIO_A9     PIN_NC
+#define GPIO_A10    PIN_NC
+#define GPIO_A11    PIN_NC
+#define GPIO_A12    PIN_NC
+#define GPIO_A13    PIN_NC
+#define GPIO_A14    PIN_NC
+#define GPIO_A15    PIN_NC
 
 /* PORT B */
-#define GPIO_B0  PIN_NC
-#define GPIO_B1  PIN_NC
-#define GPIO_B2  PIN_NC
-#define GPIO_B3  PIN_NC
-#define GPIO_B4  PIN_NC
-#define GPIO_B5  PIN_NC
-#define GPIO_B6  PIN_NC
-#define GPIO_B7  PIN_NC
-#define GPIO_B8  PIN_NC
-#define GPIO_B9  PIN_NC
-#define GPIO_B10 PIN_NC
-#define GPIO_B11 PIN_NC
-#define GPIO_B12 PIN_NC
-#define GPIO_B13 PIN_NC
-#define GPIO_B14 PIN_NC
-#define GPIO_B15 PIN_NC
+#define GPIO_B0     PIN_NC
+#define GPIO_B1     PIN_NC
+#define GPIO_B2     PIN_NC
+#define GPIO_B3     PIN_NC
+#define GPIO_B4     PIN_NC
+#define GPIO_B5     PIN_NC
+#define GPIO_B6     PIN_NC
+#define GPIO_B7     PIN_NC
+#define GPIO_B8     PIN_NC
+#define GPIO_B9     PIN_NC
+#define GPIO_B10    PIN_NC
+#define GPIO_B11    PIN_NC
+#define GPIO_B12    PIN_NC
+#define GPIO_B13    PIN_NC
+#define GPIO_B14    PIN_NC
+#define GPIO_B15    PIN_NC
 
 /* PORT C */
-#define GPIO_C0  PIN_NC
-#define GPIO_C1  PIN_NC
-#define GPIO_C2  PIN_NC
-#define GPIO_C3  PIN_NC
-#define GPIO_C4  PIN_NC
-#define GPIO_C5  PIN_NC
-#define GPIO_C6  PIN_NC
-#define GPIO_C7  PIN_NC
-#define GPIO_C8  PIN_NC
-#define GPIO_C9  PIN_NC
-#define GPIO_C10 PIN_NC
-#define GPIO_C11 PIN_NC
-#define GPIO_C12 PIN_NC
-#define GPIO_C13 PIN_NC
-#define GPIO_C14 PIN_NC
-#define GPIO_C15 PIN_NC
+#define GPIO_C0     PIN_NC
+#define GPIO_C1     PIN_NC
+#define GPIO_C2     PIN_NC
+#define GPIO_C3     PIN_NC
+#define GPIO_C4     PIN_NC
+#define GPIO_C5     PIN_NC
+#define GPIO_C6     PIN_NC
+#define GPIO_C7     PIN_NC
+#define GPIO_C8     PIN_NC
+#define GPIO_C9     PIN_NC
+#define GPIO_C10    PIN_NC
+#define GPIO_C11    PIN_NC
+#define GPIO_C12    PIN_NC
+#define GPIO_C13    PIN_NC
+#define GPIO_C14    PIN_NC
+#define GPIO_C15    PIN_NC
 
 /* PORT D */
-#define GPIO_D2  PIN_NC
+#define GPIO_D2     PIN_NC
 
 /* PORT H */
-#define GPIO_H0  PIN_NC
-#define GPIO_H1  PIN_NC
+#define GPIO_H0     PIN_NC
+#define GPIO_H1     PIN_NC
 
 /* ========================================================================== */
 
