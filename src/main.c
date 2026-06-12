@@ -53,11 +53,17 @@ int main(void)
         = {.spi_bus = &spi, .spi_cs = &enc28j60_cs, .was_initialized = false};
     enc28j60_init(&enc28j60);
 
-    uint8_t value = 0;
-    enc28j60_read_register(&enc28j60, EREVID, &value);
+    uint8_t r_value = 0;
+    enc28j60_read_register(&enc28j60, EREVID, &r_value);
+
+    uint8_t w_value = 0;
+    enc28j60_write_register(&enc28j60, ERDPTL, 0xAA);
+    enc28j60_read_register(&enc28j60, ERDPTL, &w_value);
 
     char   buf[32];
-    size_t len = snprintf(buf, sizeof(buf), "EREVID: 0x%02X\r\n", value);
+    size_t len = snprintf(buf, sizeof(buf), "Read value: 0x%02X\r\n", r_value);
+    serial_log.ops->transmit(&serial_log, (uint8_t*)buf, len);
+    len = snprintf(buf, sizeof(buf), "Write value: 0x%02X\r\n", w_value);
     serial_log.ops->transmit(&serial_log, (uint8_t*)buf, len);
 
     /* ====================================================================== */
