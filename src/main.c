@@ -1,5 +1,7 @@
 #include "main.h"
 
+/* ========================================================================== */
+
 #include "clock.h"
 #include "enc28j60.h"
 #include "platform.h"
@@ -8,6 +10,8 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+
+/* ========================================================================== */
 
 int main(void)
 {
@@ -45,14 +49,18 @@ int main(void)
            .was_initialized = false};
     spi.ops->initialize(&spi);
 
-    struct enc28j60 eth = {.spi_bus = &spi, .spi_cs = &enc28j60_cs};
+    struct enc28j60 enc28j60
+        = {.spi_bus = &spi, .spi_cs = &enc28j60_cs, .was_initialized = false};
+    enc28j60_init(&enc28j60);
 
     uint8_t value = 0;
-    enc28j60_read_register(&eth, EREVID, &value);
+    enc28j60_read_register(&enc28j60, EREVID, &value);
 
     char   buf[32];
     size_t len = snprintf(buf, sizeof(buf), "EREVID: 0x%02X\r\n", value);
     serial_log.ops->transmit(&serial_log, (uint8_t*)buf, len);
+
+    /* ====================================================================== */
 
     while (1)
     {
@@ -60,4 +68,8 @@ int main(void)
         {
         }
     }
+
+    /* ====================================================================== */
 }
+
+/* ========================================================================== */
