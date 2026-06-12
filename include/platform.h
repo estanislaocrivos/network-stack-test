@@ -15,8 +15,11 @@
 #define PLATFORM_USART1_OPS &stm32f4xx_usart1_ops
 #define PLATFORM_USART2_OPS &stm32f4xx_usart2_ops
 #define PLATFORM_USART6_OPS &stm32f4xx_usart6_ops
-#define PLATFORM_SPI_OPS    &stm32f4xx_spi_ops
+#define PLATFORM_SPI1_OPS   &stm32f4xx_spi1_ops
+#define PLATFORM_SPI2_OPS   &stm32f4xx_spi2_ops
+#define PLATFORM_SPI3_OPS   &stm32f4xx_spi3_ops
+#define PLATFORM_SPI4_OPS   &stm32f4xx_spi4_ops
 
 /* ========================================================================== */
 
-#endif  // PLATFORM_H
+#endif /* PLATFORM_H */

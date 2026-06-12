@@ -13,9 +13,9 @@
 #define GPIO_A2     PIN_AF /* USART2 TX */
 #define GPIO_A3     PIN_AF /* USART2 RX */
 #define GPIO_A4     PIN_NC
-#define GPIO_A5     PIN_DO /* LED LD2 */
-#define GPIO_A6     PIN_NC
-#define GPIO_A7     PIN_NC
+#define GPIO_A5     PIN_AF /* SPI SCK */
+#define GPIO_A6     PIN_AF /* SPI MISO */
+#define GPIO_A7     PIN_AF /* SPI MOSI */
 #define GPIO_A8     PIN_NC
 #define GPIO_A9     PIN_NC
 #define GPIO_A10    PIN_NC
@@ -32,7 +32,7 @@
 #define GPIO_B3     PIN_NC
 #define GPIO_B4     PIN_NC
 #define GPIO_B5     PIN_NC
-#define GPIO_B6     PIN_NC
+#define GPIO_B6     PIN_DO /* SPI CS */
 #define GPIO_B7     PIN_NC
 #define GPIO_B8     PIN_NC
 #define GPIO_B9     PIN_NC
@@ -77,9 +77,9 @@
 #define GPIO_A2_AF  USART2_TX_AF
 #define GPIO_A3_AF  USART2_RX_AF
 #define GPIO_A4_AF  0
-#define GPIO_A5_AF  0
-#define GPIO_A6_AF  0
-#define GPIO_A7_AF  0
+#define GPIO_A5_AF  SPI1_SCK_AF
+#define GPIO_A6_AF  SPI1_MISO_AF
+#define GPIO_A7_AF  SPI1_MOSI_AF
 #define GPIO_A8_AF  0
 #define GPIO_A9_AF  0
 #define GPIO_A10_AF 0

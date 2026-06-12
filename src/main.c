@@ -1,10 +1,13 @@
 #include "main.h"
 
 #include "clock.h"
+#include "enc28j60.h"
 #include "platform.h"
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 
 int main(void)
 {
@@ -13,22 +16,46 @@ int main(void)
     struct mcu mcu = {.ops = PLATFORM_MCU_OPS, .was_initialized = false};
     mcu.ops->initialize(&mcu);
 
+    struct gpio enc28j60_cs = {
+        .ops             = PLATFORM_GPIO_OPS,
+        .id              = GPIO_B6_ID,
+        .direction       = GPIO_OUTPUT,
+        .type            = GPIO_DIGITAL,
+        .was_initialized = true,
+    };
+    enc28j60_cs.ops->set_state(&enc28j60_cs, true);
+
     struct serial serial_log
         = {.ops             = PLATFORM_USART2_OPS,
-           .baud_rate       = 9600,
+           .baud_rate       = 9600UL,
            .data_bits       = 8,
            .parity          = 'N',
            .stop_bits       = 1,
            .was_initialized = false};
     serial_log.ops->initialize(&serial_log);
 
-    const uint8_t msg[] = "Hello, world!\r\n";
+    struct spi spi
+        = {.ops             = PLATFORM_SPI1_OPS,
+           .mode            = 0,
+           .master          = true,
+           .frequency       = 1000000UL,
+           .msb_first       = true,
+           .cs_active_high  = false,
+           .hardware_cs     = false,
+           .was_initialized = false};
+    spi.ops->initialize(&spi);
+
+    struct enc28j60 eth = {.spi_bus = &spi, .spi_cs = &enc28j60_cs};
+
+    uint8_t value = 0;
+    enc28j60_read_register(&eth, EREVID, &value);
+
+    char   buf[32];
+    size_t len = snprintf(buf, sizeof(buf), "EREVID: 0x%02X\r\n", value);
+    serial_log.ops->transmit(&serial_log, (uint8_t*)buf, len);
 
     while (1)
     {
-        serial_log.ops->transmit(&serial_log, msg, sizeof(msg) - 1);
-
-        GPIOA->ODR ^= (1U << 5);
         for (volatile int i = 0; i < 1000000; i++)
         {
         }
