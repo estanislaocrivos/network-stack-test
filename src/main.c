@@ -13,6 +13,13 @@
 
 /* ========================================================================== */
 
+#define MAC_ADDR_BYTE_1 0x02
+#define MAC_ADDR_BYTE_2 0x00
+#define MAC_ADDR_BYTE_3 0x00
+#define MAC_ADDR_BYTE_4 0x00
+#define MAC_ADDR_BYTE_5 0x00
+#define MAC_ADDR_BYTE_6 0x01
+
 int main(void)
 {
     clock_init(CLOCK_84MHZ);
@@ -50,7 +57,16 @@ int main(void)
     spi.ops->initialize(&spi);
 
     struct enc28j60 enc28j60
-        = {.spi_bus = &spi, .spi_cs = &enc28j60_cs, .was_initialized = false};
+        = {.spi_bus = &spi,
+           .spi_cs  = &enc28j60_cs,
+           .mac_address
+           = {MAC_ADDR_BYTE_1,
+              MAC_ADDR_BYTE_2,
+              MAC_ADDR_BYTE_3,
+              MAC_ADDR_BYTE_4,
+              MAC_ADDR_BYTE_5,
+              MAC_ADDR_BYTE_6},
+           .was_initialized = false};
     enc28j60_init(&enc28j60);
 
     uint8_t r_value = 0;
