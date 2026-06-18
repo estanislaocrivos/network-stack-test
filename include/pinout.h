@@ -21,8 +21,8 @@
 #define GPIO_A10    PIN_NC
 #define GPIO_A11    PIN_NC
 #define GPIO_A12    PIN_NC
-#define GPIO_A13    PIN_NC
-#define GPIO_A14    PIN_NC
+#define GPIO_A13    PIN_AF /* SWDIO */
+#define GPIO_A14    PIN_AF /* SWCLK */
 #define GPIO_A15    PIN_NC
 
 /* PORT B */
