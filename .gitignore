@@ -218,4 +218,5 @@ credentials/
 # scripts/
 
 # Miscellaneous files
+.gdb_history
 PROGRESS.md
