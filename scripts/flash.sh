@@ -16,4 +16,6 @@ if [ ! -f build/bare-metal-stm32f4.bin ]; then
     exit 1
 fi
 
-cmake --build build --target flash
+# cmake --build build --target flash
+
+openocd -f interface/cmsis-dap.cfg -f target/stm32f4x.cfg -c "program build/bare-metal-stm32f4.elf verify reset exit"
