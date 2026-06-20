@@ -70,9 +70,6 @@ int main(void)
     enc28j60_init(&enc28j60);
 
 #if 0
-    uint8_t r_value = 0;
-    enc28j60_read_eth_register(&enc28j60, EREVID, &r_value);
-
     uint8_t w_value = 0;
     enc28j60_write_register(&enc28j60, ERDPTL, 0xAA);
     enc28j60_read_eth_register(&enc28j60, ERDPTL, &w_value);
@@ -86,11 +83,45 @@ int main(void)
 
     /* ====================================================================== */
 
+    uint8_t frame[1518];
+
     while (1)
     {
-        for (volatile int i = 0; i < 1000000; i++)
+        uint8_t epktcnt = 0;
+        enc28j60_get_epktcnt(&enc28j60, &epktcnt);
+        if (epktcnt == 0)
         {
+            continue;
         }
+
+        int8_t ret = enc28j60_receive_packet(&enc28j60, frame, sizeof(frame));
+        if (ret != 0)
+        {
+            continue;
+        }
+
+        char   buf[64];
+        size_t len = snprintf(
+            buf,
+            sizeof(buf),
+            "DA: %02X:%02X:%02X:%02X:%02X:%02X "
+            "SA: %02X:%02X:%02X:%02X:%02X:%02X "
+            "Type: %02X%02X\r\n",
+            frame[0],
+            frame[1],
+            frame[2],
+            frame[3],
+            frame[4],
+            frame[5],
+            frame[6],
+            frame[7],
+            frame[8],
+            frame[9],
+            frame[10],
+            frame[11],
+            frame[12],
+            frame[13]);
+        serial_log.ops->transmit(&serial_log, (uint8_t*)buf, len);
     }
 
     /* ====================================================================== */
