@@ -17,7 +17,7 @@
 #define GPIO_A6     PIN_AF /* SPI MISO */
 #define GPIO_A7     PIN_AF /* SPI MOSI */
 #define GPIO_A8     PIN_NC
-#define GPIO_A9     PIN_NC
+#define GPIO_A9     PIN_DO /* ENC28J60 RST */
 #define GPIO_A10    PIN_NC
 #define GPIO_A11    PIN_NC
 #define GPIO_A12    PIN_NC
