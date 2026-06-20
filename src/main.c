@@ -66,6 +66,9 @@ int main(void)
               MAC_ADDR_BYTE_4,
               MAC_ADDR_BYTE_5,
               MAC_ADDR_BYTE_6},
+           .rx_buf_end_addr = 0x19BF, /* Buffer has 8KB. Only 1600B are left for
+                                         TX buffer */
+           .erdpt           = 0,
            .was_initialized = false};
     enc28j60_init(&enc28j60);
 
@@ -83,7 +86,7 @@ int main(void)
 
     /* ====================================================================== */
 
-    uint8_t frame[1518];
+    uint8_t frame[1518]; /* Where eth frame will be stored */
 
     while (1)
     {
