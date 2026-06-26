@@ -15,19 +15,21 @@
 
 /* ========================================================================== */
 
-#define MAC_ADDR_BYTE_6         0x02
-#define MAC_ADDR_BYTE_5         0x00
-#define MAC_ADDR_BYTE_4         0x00
-#define MAC_ADDR_BYTE_3         0x00
+#define MAC_ADDR_BYTE_1         0x02
 #define MAC_ADDR_BYTE_2         0x00
-#define MAC_ADDR_BYTE_1         0x01
+#define MAC_ADDR_BYTE_3         0x00
+#define MAC_ADDR_BYTE_4         0x00
+#define MAC_ADDR_BYTE_5         0x00
+#define MAC_ADDR_BYTE_6         0x01
 
 #define ENC28J60_RXBUF_END_ADDR 0x19BF
 
-#define IPV4_ADDR_BYTE_4        192 /* MSB */
-#define IPV4_ADDR_BYTE_3        168
-#define IPV4_ADDR_BYTE_2        1
-#define IPV4_ADDR_BYTE_1        250
+#define MAX_ETH_FRAME_SIZE      1518
+
+#define IPV4_ADDR_BYTE_1        192 /* MSB */
+#define IPV4_ADDR_BYTE_2        168
+#define IPV4_ADDR_BYTE_3        1
+#define IPV4_ADDR_BYTE_4        250
 
 int main(void)
 {
@@ -98,21 +100,21 @@ int main(void)
            .was_initialized = false};
     enc28j60_init(&enc28j60);
 
-    struct arp arp
-        = {.ip_addr[3]  = IPV4_ADDR_BYTE_4,
-           .ip_addr[2]  = IPV4_ADDR_BYTE_3,
+    const struct arp arp
+        = {.ip_addr[0]  = IPV4_ADDR_BYTE_1,
            .ip_addr[1]  = IPV4_ADDR_BYTE_2,
-           .ip_addr[0]  = IPV4_ADDR_BYTE_1,
-           .mac_addr[5] = MAC_ADDR_BYTE_6,
-           .mac_addr[4] = MAC_ADDR_BYTE_5,
-           .mac_addr[3] = MAC_ADDR_BYTE_4,
-           .mac_addr[2] = MAC_ADDR_BYTE_3,
+           .ip_addr[2]  = IPV4_ADDR_BYTE_3,
+           .ip_addr[3]  = IPV4_ADDR_BYTE_4,
+           .mac_addr[0] = MAC_ADDR_BYTE_1,
            .mac_addr[1] = MAC_ADDR_BYTE_2,
-           .mac_addr[0] = MAC_ADDR_BYTE_1};
+           .mac_addr[2] = MAC_ADDR_BYTE_3,
+           .mac_addr[3] = MAC_ADDR_BYTE_4,
+           .mac_addr[4] = MAC_ADDR_BYTE_5,
+           .mac_addr[5] = MAC_ADDR_BYTE_6};
 
     /* ====================================================================== */
 
-    uint8_t frame[1518]; /* Where eth frame will be stored */
+    uint8_t frame[MAX_ETH_FRAME_SIZE]; /* Where eth frame will be stored */
 
     while (1)
     {
