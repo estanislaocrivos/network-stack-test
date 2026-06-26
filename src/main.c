@@ -15,7 +15,7 @@
 
 /* ========================================================================== */
 
-#define MAC_ADDR_BYTE_1         0x02
+#define MAC_ADDR_BYTE_1         0x02 /* MSB */
 #define MAC_ADDR_BYTE_2         0x00
 #define MAC_ADDR_BYTE_3         0x00
 #define MAC_ADDR_BYTE_4         0x00
