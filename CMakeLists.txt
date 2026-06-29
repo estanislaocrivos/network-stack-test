@@ -59,6 +59,7 @@ set(DRIVER_SOURCES
     ${CMAKE_SOURCE_DIR}/external/c-libraries/drivers/stm32f4xx/src/stm32f4xx_spi.c
     ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/enc28j60/src/enc28j60.c
     ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/pico-net-stack/src/arp.c
+    ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/pico-net-stack/src/eth.c
 )
 
 if(NOT APP_SOURCES)

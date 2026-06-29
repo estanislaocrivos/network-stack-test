@@ -6,6 +6,7 @@
 #include "clock.h"
 #include "enc28j60.h"
 #include "errno.h"
+#include "eth.h"
 #include "platform.h"
 
 #include <stdbool.h>
@@ -15,21 +16,23 @@
 
 /* ========================================================================== */
 
-#define MAC_ADDR_BYTE_1         0x02 /* MSB */
+#define MAC_ADDR_BYTE_1         0x02 /* first transmitted / MSB */
 #define MAC_ADDR_BYTE_2         0x00
 #define MAC_ADDR_BYTE_3         0x00
 #define MAC_ADDR_BYTE_4         0x00
 #define MAC_ADDR_BYTE_5         0x00
 #define MAC_ADDR_BYTE_6         0x01
 
-#define ENC28J60_RXBUF_END_ADDR 0x19BF
-
-#define MAX_ETH_FRAME_SIZE      1518
-
 #define IPV4_ADDR_BYTE_1        192 /* MSB */
 #define IPV4_ADDR_BYTE_2        168
 #define IPV4_ADDR_BYTE_3        1
 #define IPV4_ADDR_BYTE_4        250
+
+#define ENC28J60_RXBUF_END_ADDR 0x19BF
+#define MAX_ETH_FRAME_SIZE      1518
+#define ARP_PAYLOAD_SIZE        28
+
+/* ========================================================================== */
 
 int main(void)
 {
@@ -94,27 +97,43 @@ int main(void)
               MAC_ADDR_BYTE_4,
               MAC_ADDR_BYTE_5,
               MAC_ADDR_BYTE_6},
-           .rx_buf_end_addr = ENC28J60_RXBUF_END_ADDR, /* Buffer has 8KB. Only
-                                         1600B are left for TX buffer */
+           .rx_buf_end_addr = ENC28J60_RXBUF_END_ADDR,
            .erdpt           = 0,
            .was_initialized = false};
     enc28j60_init(&enc28j60);
 
+    const struct eth eth
+        = {.ip_addr
+           = {IPV4_ADDR_BYTE_1,
+              IPV4_ADDR_BYTE_2,
+              IPV4_ADDR_BYTE_3,
+              IPV4_ADDR_BYTE_4},
+           .mac_addr
+           = {MAC_ADDR_BYTE_1,
+              MAC_ADDR_BYTE_2,
+              MAC_ADDR_BYTE_3,
+              MAC_ADDR_BYTE_4,
+              MAC_ADDR_BYTE_5,
+              MAC_ADDR_BYTE_6},
+           .calc_crc = false};
+
     const struct arp arp
-        = {.ip_addr[0]  = IPV4_ADDR_BYTE_1,
-           .ip_addr[1]  = IPV4_ADDR_BYTE_2,
-           .ip_addr[2]  = IPV4_ADDR_BYTE_3,
-           .ip_addr[3]  = IPV4_ADDR_BYTE_4,
-           .mac_addr[0] = MAC_ADDR_BYTE_1,
-           .mac_addr[1] = MAC_ADDR_BYTE_2,
-           .mac_addr[2] = MAC_ADDR_BYTE_3,
-           .mac_addr[3] = MAC_ADDR_BYTE_4,
-           .mac_addr[4] = MAC_ADDR_BYTE_5,
-           .mac_addr[5] = MAC_ADDR_BYTE_6};
+        = {.ip_addr
+           = {IPV4_ADDR_BYTE_1,
+              IPV4_ADDR_BYTE_2,
+              IPV4_ADDR_BYTE_3,
+              IPV4_ADDR_BYTE_4},
+           .mac_addr
+           = {MAC_ADDR_BYTE_1,
+              MAC_ADDR_BYTE_2,
+              MAC_ADDR_BYTE_3,
+              MAC_ADDR_BYTE_4,
+              MAC_ADDR_BYTE_5,
+              MAC_ADDR_BYTE_6}};
 
     /* ====================================================================== */
 
-    uint8_t frame[MAX_ETH_FRAME_SIZE]; /* Where eth frame will be stored */
+    uint8_t frame[MAX_ETH_FRAME_SIZE];
 
     while (1)
     {
@@ -126,14 +145,16 @@ int main(void)
         }
 
         uint16_t eth_pkt_size = 0;
-        int8_t   ret = enc28j60_receive_packet(&enc28j60, frame, &eth_pkt_size);
-        if (ret != 0)
+        if (enc28j60_receive_packet(&enc28j60, frame, &eth_pkt_size) != 0)
         {
             continue;
         }
 
-        bool is_for_me = false;
-        arp_is_request_for_me(&arp, frame, sizeof(frame), &is_for_me);
+        struct eth_rx_metadata eth_mdata = {0};
+        if (eth_process_frame(&eth, frame, eth_pkt_size, &eth_mdata) != 0)
+        {
+            continue;
+        }
 
         char   buf[128];
         size_t len = snprintf(
@@ -141,7 +162,7 @@ int main(void)
             sizeof(buf),
             "DA: %02X:%02X:%02X:%02X:%02X:%02X "
             "SA: %02X:%02X:%02X:%02X:%02X:%02X "
-            "Type: %02X%02X (request: %u)\r\n",
+            "Type: %02X%02X\r\n",
             frame[0],
             frame[1],
             frame[2],
@@ -155,15 +176,45 @@ int main(void)
             frame[10],
             frame[11],
             frame[12],
-            frame[13],
-            (uint8_t)is_for_me);
+            frame[13]);
         serial_log.ops->transmit(&serial_log, (uint8_t*)buf, len);
 
-        if (is_for_me)
+        if (eth_mdata.payload_type != ETH_PLD_ARP)
         {
-            arp_reply_request(&arp, frame, sizeof(frame));
-            enc28j60_transmit_packet(&enc28j60, frame, eth_pkt_size);
+            continue;
         }
+
+        struct arp_rx_metadata arp_mdata = {0};
+        if (arp_process_frame(
+                &arp,
+                eth_mdata.payload,
+                (uint8_t)eth_mdata.payload_size,
+                &arp_mdata)
+            != 0)
+        {
+            continue;
+        }
+
+        if (!arp_is_request_for_me(&arp, &arp_mdata))
+        {
+            continue;
+        }
+
+        uint8_t                arp_payload[ARP_PAYLOAD_SIZE];
+        struct arp_tx_metadata arp_tx = {.op_type = ARP_REPLY};
+        memcpy(arp_tx.dest_mac_addr, arp_mdata.src_mac_addr, 6);
+        memcpy(arp_tx.dest_ip_addr, arp_mdata.src_ip_addr, 4);
+        arp_build_frame(&arp, &arp_tx, arp_payload, sizeof(arp_payload));
+
+        struct eth_tx_metadata eth_tx
+            = {.payload_type = ETH_PLD_ARP,
+               .payload      = arp_payload,
+               .payload_size = ARP_PAYLOAD_SIZE};
+        memcpy(eth_tx.dest_mac_addr, arp_mdata.src_mac_addr, 6);
+        uint16_t tx_size = 0;
+        eth_build_frame(&eth, &eth_tx, frame, &tx_size);
+
+        enc28j60_transmit_packet(&enc28j60, frame, tx_size);
     }
 
     /* ====================================================================== */
