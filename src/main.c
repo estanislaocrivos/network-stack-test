@@ -184,33 +184,33 @@ int main(void)
             continue;
         }
 
-        struct arp_rx_metadata arp_mdata = {0};
+        struct arp_rx_metadata arp_rx_mdata = {0};
         if (arp_process_frame(
                 &arp,
                 eth_mdata.payload,
                 (uint8_t)eth_mdata.payload_size,
-                &arp_mdata)
+                &arp_rx_mdata)
             != 0)
         {
             continue;
         }
 
-        if (!arp_is_request_for_me(&arp, &arp_mdata))
+        if (!arp_is_request_for_me(&arp, &arp_rx_mdata))
         {
             continue;
         }
 
         uint8_t                arp_payload[ARP_PAYLOAD_SIZE];
-        struct arp_tx_metadata arp_tx = {.op_type = ARP_REPLY};
-        memcpy(arp_tx.dest_mac_addr, arp_mdata.src_mac_addr, 6);
-        memcpy(arp_tx.dest_ip_addr, arp_mdata.src_ip_addr, 4);
-        arp_build_frame(&arp, &arp_tx, arp_payload, sizeof(arp_payload));
+        struct arp_tx_metadata arp_tx_mdata = {.op_type = ARP_REPLY};
+        memcpy(arp_tx_mdata.dest_mac_addr, arp_rx_mdata.src_mac_addr, 6);
+        memcpy(arp_tx_mdata.dest_ip_addr, arp_rx_mdata.src_ip_addr, 4);
+        arp_build_frame(&arp, &arp_tx_mdata, arp_payload, sizeof(arp_payload));
 
         struct eth_tx_metadata eth_tx
             = {.payload_type = ETH_PLD_ARP,
                .payload      = arp_payload,
                .payload_size = ARP_PAYLOAD_SIZE};
-        memcpy(eth_tx.dest_mac_addr, arp_mdata.src_mac_addr, 6);
+        memcpy(eth_tx.dest_mac_addr, arp_rx_mdata.src_mac_addr, 6);
         uint16_t tx_size = 0;
         eth_build_frame(&eth, &eth_tx, frame, &tx_size);
 
