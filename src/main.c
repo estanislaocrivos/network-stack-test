@@ -5,7 +5,6 @@
 #include "arp.h"
 #include "clock.h"
 #include "enc28j60.h"
-#include "errno.h"
 #include "eth.h"
 #include "platform.h"
 
@@ -29,8 +28,6 @@
 #define IPV4_ADDR_BYTE_4        250
 
 #define ENC28J60_RXBUF_END_ADDR 0x19BF
-#define MAX_ETH_FRAME_SIZE      1518
-#define ARP_PAYLOAD_SIZE        28
 
 /* ========================================================================== */
 
