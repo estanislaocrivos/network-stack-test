@@ -61,6 +61,7 @@ set(DRIVER_SOURCES
     ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/pico-net-stack/src/arp.c
     ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/pico-net-stack/src/eth.c
     ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/pico-net-stack/src/ip.c
+    ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/pico-net-stack/src/icmp.c
 )
 
 if(NOT APP_SOURCES)

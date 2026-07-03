@@ -6,8 +6,10 @@
 #include "clock.h"
 #include "enc28j60.h"
 #include "eth.h"
+#include "icmp.h"
 #include "ip.h"
 #include "platform.h"
+#include "utils.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -29,6 +31,8 @@
 #define IPV4_ADDR_BYTE_4        250
 
 #define ENC28J60_RXBUF_END_ADDR 0x19BF
+
+#define MAX_ICMP_PAYLOAD_SIZE   1472
 
 /* ========================================================================== */
 
@@ -136,6 +140,8 @@ int main(void)
               IPV4_ADDR_BYTE_3,
               IPV4_ADDR_BYTE_4}};
 
+    const struct icmp icmp = {.unused = 0};
+
     /* ====================================================================== */
 
     uint8_t frame[MAX_ETH_FRAME_SIZE];
@@ -155,8 +161,8 @@ int main(void)
             continue;
         }
 
-        struct eth_rx_metadata eth_mdata = {0};
-        if (eth_process_frame(&eth, frame, eth_pkt_size, &eth_mdata))
+        struct eth_rx_metadata eth_rx_mdata = {0};
+        if (eth_process_frame(&eth, frame, eth_pkt_size, &eth_rx_mdata))
         {
             continue;
         }
@@ -186,33 +192,71 @@ int main(void)
 
         /* ================================================================== */
 
-        if (eth_mdata.payload_type == ETH_PLD_IPV4)
+        if (eth_rx_mdata.payload_type == ETH_PLD_IPV4)
         {
             struct ip_rx_metadata ip_rx_mdata = {0};
             if (ip_process_frame(
                     &ip,
-                    eth_mdata.payload,
-                    eth_mdata.payload_size,
+                    eth_rx_mdata.payload,
+                    eth_rx_mdata.payload_size,
                     &ip_rx_mdata))
             {
                 continue;
             }
             if (ip_is_pkt_for_me(&ip, &ip_rx_mdata))
             {
-                serial_log.ops->transmit(
-                    &serial_log, (uint8_t*)"Received IP!\r\n", 14);
+                struct icmp_rx_metadata icmp_rx_mdata = {0};
+                icmp_process_frame(
+                    &icmp,
+                    ip_rx_mdata.payload,
+                    ip_rx_mdata.payload_size,
+                    &icmp_rx_mdata);
+
+                if (icmp_rx_mdata.type == ICMP_ECHO_REQUEST)
+                {
+                    uint8_t icmp_payload[MAX_ICMP_PAYLOAD_SIZE] = {0};
+                    struct icmp_tx_metadata icmp_tx_mdata
+                        = {.type         = ICMP_ECHO_REPLY,
+                           .code         = icmp_rx_mdata.code,
+                           .id           = icmp_rx_mdata.id,
+                           .payload      = icmp_rx_mdata.payload,
+                           .payload_size = icmp_rx_mdata.payload_size,
+                           .seq_num      = icmp_rx_mdata.seq_num};
+
+                    icmp_build_frame(
+                        &icmp,
+                        &icmp_tx_mdata,
+                        icmp_payload,
+                        sizeof(icmp_payload));
+
+                    /* TODO: call ip_build_frame */
+
+                    struct eth_tx_metadata eth_tx_mdata
+                        = {.payload_type = ETH_PLD_IPV4,
+                           /* TODO: change to ip_tx_mdata */
+                           .payload      = ip_rx_mdata.payload,
+                           .payload_size = ip_rx_mdata.payload_size};
+                    memcpy(
+                        eth_tx_mdata.dest_mac_addr,
+                        eth_rx_mdata.src_mac_addr,
+                        6);
+                    uint16_t tx_size = 0;
+                    eth_build_frame(&eth, &eth_tx_mdata, frame, &tx_size);
+
+                    enc28j60_transmit_packet(&enc28j60, frame, tx_size);
+                }
             }
         }
 
         /* ================================================================== */
 
-        if (eth_mdata.payload_type == ETH_PLD_ARP)
+        if (eth_rx_mdata.payload_type == ETH_PLD_ARP)
         {
             struct arp_rx_metadata arp_rx_mdata = {0};
             if (arp_process_frame(
                     &arp,
-                    eth_mdata.payload,
-                    (uint8_t)eth_mdata.payload_size,
+                    eth_rx_mdata.payload,
+                    (uint8_t)eth_rx_mdata.payload_size,
                     &arp_rx_mdata))
             {
                 continue;
@@ -228,13 +272,14 @@ int main(void)
                 arp_build_frame(
                     &arp, &arp_tx_mdata, arp_payload, sizeof(arp_payload));
 
-                struct eth_tx_metadata eth_tx
+                struct eth_tx_metadata eth_tx_mdata
                     = {.payload_type = ETH_PLD_ARP,
                        .payload      = arp_payload,
                        .payload_size = ARP_PAYLOAD_SIZE};
-                memcpy(eth_tx.dest_mac_addr, arp_rx_mdata.src_mac_addr, 6);
+                memcpy(
+                    eth_tx_mdata.dest_mac_addr, arp_rx_mdata.src_mac_addr, 6);
                 uint16_t tx_size = 0;
-                eth_build_frame(&eth, &eth_tx, frame, &tx_size);
+                eth_build_frame(&eth, &eth_tx_mdata, frame, &tx_size);
 
                 enc28j60_transmit_packet(&enc28j60, frame, tx_size);
             }
