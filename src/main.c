@@ -34,14 +34,6 @@
 
 #define MAX_ICMP_PACKET_SIZE    1472
 
-#define LOG_INT(serial, label, val)                                       \
-    do                                                                    \
-    {                                                                     \
-        char   _buf[64];                                                  \
-        size_t _len                                                       \
-            = snprintf(_buf, sizeof(_buf), label ": %d\r\n", (int)(val)); \
-        (serial).ops->transmit(&(serial), (uint8_t*)_buf, _len);          \
-    } while (0)
 #define MAX_IP_PACKET_SIZE \
     MAX_ETH_FRAME_SIZE - MAX_ETH_HEADER_SIZE - MAX_IP_HEADER_SIZE
 
@@ -179,6 +171,7 @@ int main(void)
             continue;
         }
 
+#if 0
         char   buf[128];
         size_t len = snprintf(
             buf,
@@ -201,6 +194,7 @@ int main(void)
             eth_frame[12],
             eth_frame[13]);
         serial_log.ops->transmit(&serial_log, (uint8_t*)buf, len);
+#endif
 
         /* ================================================================== */
 
@@ -227,9 +221,6 @@ int main(void)
 
                 if (icmp_rx_mdata.type == ICMP_ECHO_REQUEST)
                 {
-                    serial_log.ops->transmit(
-                        &serial_log, (uint8_t*)"Received echo req.\r\n", 20);
-
                     uint8_t  icmp_packet[MAX_ICMP_PACKET_SIZE] = {0};
                     uint16_t icmp_packet_size                  = 0;
 
@@ -241,10 +232,8 @@ int main(void)
                            .payload_size = icmp_rx_mdata.payload_size,
                            .seq_num      = icmp_rx_mdata.seq_num};
 
-                    int8_t r_icmp = icmp_build_frame(
+                    icmp_build_frame(
                         &icmp, &icmp_tx_mdata, icmp_packet, &icmp_packet_size);
-                    LOG_INT(serial_log, "icmp_build ret", r_icmp);
-                    LOG_INT(serial_log, "icmp_packet_size", icmp_packet_size);
 
                     uint8_t  ip_packet[MAX_IP_PACKET_SIZE] = {0};
                     uint16_t ip_packet_size                = 0;
@@ -256,10 +245,8 @@ int main(void)
                            .version       = IP_VER_4};
                     memcpy(ip_tx_mdata.dest_ip, ip_rx_mdata.src_ip, 4);
 
-                    int8_t r_ip = ip_build_frame(
+                    ip_build_frame(
                         &ip, &ip_tx_mdata, ip_packet, &ip_packet_size);
-                    LOG_INT(serial_log, "ip_build ret", r_ip);
-                    LOG_INT(serial_log, "ip_packet_size", ip_packet_size);
 
                     struct eth_tx_metadata eth_tx_mdata
                         = {.payload_type = ETH_PLD_IPV4,
@@ -270,15 +257,11 @@ int main(void)
                         eth_rx_mdata.src_mac_addr,
                         6);
 
-                    int8_t r_eth = eth_build_frame(
+                    eth_build_frame(
                         &eth, &eth_tx_mdata, eth_frame, &eth_frame_size);
-                    LOG_INT(serial_log, "eth_build ret", r_eth);
-                    LOG_INT(serial_log, "eth_frame_size", eth_frame_size);
 
-                    int8_t r_tx = enc28j60_transmit_packet(
+                    enc28j60_transmit_packet(
                         &enc28j60, eth_frame, eth_frame_size);
-
-                    LOG_INT(serial_log, "tx ret", r_tx);
                 }
             }
         }
