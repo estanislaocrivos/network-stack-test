@@ -282,7 +282,7 @@ int main(void)
 
             if (arp_is_request_for_me(&arp, &arp_rx_mdata))
             {
-                uint8_t                arp_packet[ARP_PAYLOAD_SIZE];
+                uint8_t                arp_packet[ARP_PACKET_SIZE];
                 struct arp_tx_metadata arp_tx_mdata = {.op_type = ARP_REPLY};
                 memcpy(
                     arp_tx_mdata.dest_mac_addr, arp_rx_mdata.src_mac_addr, 6);
