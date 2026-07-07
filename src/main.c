@@ -6,10 +6,12 @@
 #include "clock.h"
 #include "enc28j60.h"
 #include "eth.h"
+#include "hd44780_i2c.h"
+#include "i2c.h"
 #include "icmp.h"
 #include "ip.h"
 #include "platform.h"
-#include "utils.h"
+#include "timer.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -38,6 +40,22 @@
     MAX_ETH_FRAME_SIZE - MAX_ETH_HEADER_SIZE - MAX_IP_HEADER_SIZE
 
 /* ========================================================================== */
+
+static int8_t stm32f4xx_delay_ms(const struct timer* self, uint16_t ms)
+{
+    (void)self;
+    for (volatile uint32_t i = 0; i < 84000 * ms; i++)
+        __NOP();
+    return 0;
+}
+
+static int8_t stm32f4xx_delay_us(const struct timer* self, uint16_t us)
+{
+    (void)self;
+    for (volatile uint32_t i = 0; i < 84 * us; i++)
+        __NOP();
+    return 0;
+}
 
 int main(void)
 {
@@ -144,6 +162,31 @@ int main(void)
               IPV4_ADDR_BYTE_4}};
 
     const struct icmp icmp = {.unused = 0};
+
+    /* ====================================================================== */
+
+    struct i2c i2c
+        = {.master        = true,
+           .frequency     = 100000,
+           .address_mode  = I2C_ADDR_7BIT,
+           .slave_address = 0x20,
+           .ops           = PLATFORM_I2C1_OPS};
+
+    i2c.ops->initialize(&i2c);
+
+    struct timer_ops tmr_ops
+        = {.delay_us = stm32f4xx_delay_us, .delay_ms = stm32f4xx_delay_ms};
+    struct timer tmr = {.ops = &tmr_ops};
+
+    struct hd44780_pcf8574_ctx hd44780_pcf8574_ctx = {.i2c_bus = &i2c};
+
+    struct hd44780_ops lcd_ops = {.write_nibble = hd44780_pcf8574_write_nibble};
+
+    struct hd44780 lcd
+        = {.ops_ctx = &hd44780_pcf8574_ctx, .ops = &lcd_ops, .tmr = &tmr};
+
+    lcd_initialize(&lcd);
+    lcd_print_string(&lcd, "Hello, world!");
 
     /* ====================================================================== */
 

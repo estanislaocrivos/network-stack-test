@@ -57,7 +57,10 @@ set(DRIVER_SOURCES
     ${CMAKE_SOURCE_DIR}/external/c-libraries/drivers/stm32f4xx/src/stm32f4xx_gpio.c
     ${CMAKE_SOURCE_DIR}/external/c-libraries/drivers/stm32f4xx/src/stm32f4xx_mcu.c
     ${CMAKE_SOURCE_DIR}/external/c-libraries/drivers/stm32f4xx/src/stm32f4xx_spi.c
+    ${CMAKE_SOURCE_DIR}/external/c-libraries/drivers/stm32f4xx/src/stm32f4xx_i2c.c
     ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/enc28j60/src/enc28j60.c
+    ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/hd44780/src/hd44780.c
+    ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/hd44780/src/hd44780_i2c.c
     ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/pico-net-stack/src/arp.c
     ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/pico-net-stack/src/eth.c
     ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/pico-net-stack/src/ip.c
@@ -98,6 +101,7 @@ set(INCLUDE_DIRS
     ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/embedded-hal/inc
     ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/enc28j60/inc
     ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/pico-net-stack/inc
+    ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/hd44780/inc
     ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/inc
 )
 
