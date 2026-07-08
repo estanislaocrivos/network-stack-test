@@ -34,8 +34,8 @@
 #define GPIO_B5     PIN_NC
 #define GPIO_B6     PIN_DO /* SPI CS */
 #define GPIO_B7     PIN_NC
-#define GPIO_B8     PIN_OD
-#define GPIO_B9     PIN_OD
+#define GPIO_B8     (PIN_AF | PIN_OD)
+#define GPIO_B9     (PIN_AF | PIN_OD)
 #define GPIO_B10    PIN_NC
 #define GPIO_B11    PIN_NC
 #define GPIO_B12    PIN_NC

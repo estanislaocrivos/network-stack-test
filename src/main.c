@@ -6,6 +6,7 @@
 #include "clock.h"
 #include "enc28j60.h"
 #include "eth.h"
+#include "hd44780.h"
 #include "hd44780_i2c.h"
 #include "i2c.h"
 #include "icmp.h"
@@ -104,11 +105,9 @@ int main(void)
 
     /* Reset ENC28J60 */
     enc28j60_rst.ops->set_state(&enc28j60_rst, false);
-    for (volatile uint32_t i = 0; i < 84000; i++)
-        __NOP();
+    stm32f4xx_delay_ms(NULL, 1);
     enc28j60_rst.ops->set_state(&enc28j60_rst, true);
-    for (volatile uint32_t i = 0; i < 84000; i++)
-        __NOP();
+    stm32f4xx_delay_ms(NULL, 1);
 
     struct enc28j60 enc28j60
         = {.spi_bus = &spi,
@@ -169,7 +168,7 @@ int main(void)
         = {.master        = true,
            .frequency     = 100000,
            .address_mode  = I2C_ADDR_7BIT,
-           .slave_address = 0x20,
+           .slave_address = 0x27,
            .ops           = PLATFORM_I2C1_OPS};
 
     i2c.ops->initialize(&i2c);
@@ -186,6 +185,7 @@ int main(void)
         = {.ops_ctx = &hd44780_pcf8574_ctx, .ops = &lcd_ops, .tmr = &tmr};
 
     lcd_initialize(&lcd);
+    lcd_go_to_index(&lcd, 0, 0);
     lcd_print_string(&lcd, "Hello, world!");
 
     /* ====================================================================== */
