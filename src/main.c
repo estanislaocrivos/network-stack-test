@@ -160,7 +160,7 @@ int main(void)
               IPV4_ADDR_BYTE_3,
               IPV4_ADDR_BYTE_4}};
 
-    const struct icmp icmp = {.unused = 0};
+    const struct icmp icmp = {.lost_frames = 0};
 
     /* ====================================================================== */
 
@@ -287,6 +287,7 @@ int main(void)
                            .pld_prot_type = IP_PLD_ICMP,
                            .version       = IP_VER_4};
                     memcpy(ip_tx_mdata.dest_ip, ip_rx_mdata.src_ip, 4);
+                    memcpy(ip_tx_mdata.src_ip, ip.ip_addr, 4);
 
                     ip_build_frame(
                         &ip, &ip_tx_mdata, ip_packet, &ip_packet_size);
