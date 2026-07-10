@@ -61,11 +61,11 @@ set(DRIVER_SOURCES
     ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/enc28j60/src/enc28j60.c
     ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/hd44780/src/hd44780.c
     ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/hd44780/src/hd44780_i2c.c
-    ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/pico-net-stack/src/arp.c
-    ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/pico-net-stack/src/eth.c
-    ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/pico-net-stack/src/ip.c
-    ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/pico-net-stack/src/icmp.c
-    ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/pico-net-stack/src/utils.c
+    ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/uip/src/arp.c
+    ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/uip/src/eth.c
+    ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/uip/src/ip.c
+    ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/uip/src/icmp.c
+    ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/uip/src/utils.c
 )
 
 if(NOT APP_SOURCES)
@@ -100,7 +100,7 @@ set(INCLUDE_DIRS
     ${CMAKE_SOURCE_DIR}/external/c-libraries/drivers/stm32f4xx/inc
     ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/embedded-hal/inc
     ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/enc28j60/inc
-    ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/pico-net-stack/inc
+    ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/uip/inc
     ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/hd44780/inc
     ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/inc
 )
