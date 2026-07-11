@@ -46,10 +46,23 @@ struct sntp_tx_metadata
     uint32_t                  tx_timestamp_frac;
 };
 
+struct sntp_rx_metadata
+{
+    uint32_t rx_timestamp_int;
+    uint32_t rx_timestamp_frac;
+    uint32_t tx_timestamp_int;
+    uint32_t tx_timestamp_frac;
+};
+
 /* ========================================================================== */
 
+int8_t sntp_process_frame(
+    uint8_t* rx_frame, uint16_t rx_frame_size, struct sntp_rx_metadata* mdata);
+
 int8_t sntp_build_frame(
-    struct sntp_tx_metadata* mdata, uint8_t* tx_frame, uint16_t* tx_frame_size);
+    const struct sntp_tx_metadata* mdata,
+    uint8_t*                       tx_frame,
+    uint16_t*                      tx_frame_size);
 
 /* ========================================================================== */
 

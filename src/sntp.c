@@ -61,6 +61,12 @@ static void write_u32_to_frame(uint32_t value, uint8_t* buffer)
     buffer[3] = (uint8_t)(value);
 }
 
+static uint32_t read_u32_from_frame(const uint8_t* buffer)
+{
+    return ((uint32_t)buffer[0] << 24) | ((uint32_t)buffer[1] << 16)
+           | ((uint32_t)buffer[2] << 8) | (uint32_t)buffer[3];
+}
+
 /* ========================================================================== */
 
 static void sntp_build_packet_header(
@@ -77,8 +83,36 @@ static void sntp_build_packet_header(
 
 /* ========================================================================== */
 
+int8_t sntp_process_frame(
+    uint8_t* rx_frame, uint16_t rx_frame_size, struct sntp_rx_metadata* mdata)
+{
+    if (rx_frame == NULL || mdata == NULL)
+    {
+        return -1;
+    }
+    if (rx_frame_size < SNTP_FRAME_SIZE)
+    {
+        return -1;
+    }
+
+    mdata->rx_timestamp_int
+        = read_u32_from_frame(rx_frame + SNTP_RX_TSTAMP_INT_FRAME_OFST);
+    mdata->rx_timestamp_frac
+        = read_u32_from_frame(rx_frame + SNTP_RX_TSTAMP_FRAC_FRAME_OFST);
+    mdata->tx_timestamp_int
+        = read_u32_from_frame(rx_frame + SNTP_TX_TSTAMP_INT_FRAME_OFST);
+    mdata->tx_timestamp_frac
+        = read_u32_from_frame(rx_frame + SNTP_TX_TSTAMP_FRAC_FRAME_OFST);
+
+    return 0;
+}
+
+/* ========================================================================== */
+
 int8_t sntp_build_frame(
-    struct sntp_tx_metadata* mdata, uint8_t* tx_frame, uint16_t* tx_frame_size)
+    const struct sntp_tx_metadata* mdata,
+    uint8_t*                       tx_frame,
+    uint16_t*                      tx_frame_size)
 {
     if (mdata == NULL || tx_frame == NULL || tx_frame_size == NULL)
     {
