@@ -194,17 +194,20 @@ int main(void)
 
     /* ====================================================================== */
 
-    uint8_t  eth_packet[MAX_ETH_FRAME_SIZE] = {0};
-    uint16_t eth_packet_size                = 0;
+    static uint8_t eth_packet[MAX_ETH_FRAME_SIZE] = {0};
+    uint16_t       eth_packet_size                = 0;
 
-    uint8_t  ip_packet[MAX_IP_PACKET_SIZE] = {0};
-    uint16_t ip_packet_size                = 0;
+    static uint8_t ip_packet[MAX_IP_PACKET_SIZE] = {0};
+    uint16_t       ip_packet_size                = 0;
 
-    uint8_t  icmp_packet[MAX_ICMP_PACKET_SIZE] = {0};
-    uint16_t icmp_packet_size                  = 0;
+    static uint8_t icmp_packet[MAX_ICMP_PACKET_SIZE] = {0};
+    uint16_t       icmp_packet_size                  = 0;
 
-    uint8_t  udp_packet[MAX_UDP_PACKET_SIZE] = {0};
-    uint16_t udp_packet_size                 = 0;
+    static uint8_t udp_packet[MAX_UDP_PACKET_SIZE] = {0};
+    uint16_t       udp_packet_size                 = 0;
+
+    static uint8_t sntp_packet[64]  = {0};
+    uint8_t        sntp_packet_size = 0;
 
     /* ====================================================================== */
 
@@ -215,36 +218,30 @@ int main(void)
               IPV4_ADDR_BYTE_2,
               IPV4_ADDR_BYTE_3,
               IPV4_ADDR_BYTE_4}};
-    uint8_t                 sntp_frame[64]  = {0};
-    uint8_t                 sntp_frame_size = 0;
-    struct sntp_tx_metadata sntp_tx_mdata   = {.header = {0, 4, 3, 0, 0, 0}};
-    sntp_build_frame(&sntp_tx_mdata, sntp_frame, &sntp_frame_size);
+    struct sntp_tx_metadata sntp_tx_mdata = {.header = {0, 4, 3, 0, 0, 0}};
+    sntp_build_frame(&sntp_tx_mdata, sntp_packet, &sntp_packet_size);
 
     struct udp             udp = {0};
     struct udp_tx_metadata udp_tx_mdata
         = {.ip_mdata      = &ip_tx_mdata,
            .dest_port_num = 123,
            .src_port_num  = 0,
-           .payload       = sntp_frame,
-           sntp_frame_size};
-
+           .payload       = sntp_packet,
+           sntp_packet_size};
     udp_build_frame(&udp, &udp_tx_mdata, udp_packet, &udp_packet_size);
 
     ip_tx_mdata.payload       = udp_packet;
     ip_tx_mdata.payload_size  = udp_packet_size;
     ip_tx_mdata.pld_prot_type = IP_PLD_UDP;
     ip_tx_mdata.version       = IP_VER_4;
-
     ip_build_frame(&ip, &ip_tx_mdata, ip_packet, &ip_packet_size);
 
     struct eth_tx_metadata eth_tx_mdata
         = {.payload_type = ETH_PLD_IPV4,
            .payload      = ip_packet,
            .payload_size = ip_packet_size};
-
     const uint8_t gateway_mac[] = {0xD0, 0xEA, 0x11, 0x58, 0x99, 0x77};
     memcpy(eth_tx_mdata.dest_mac_addr, gateway_mac, 6);
-
     eth_build_frame(&eth, &eth_tx_mdata, eth_packet, &eth_packet_size);
 
     enc28j60_transmit_packet(&enc28j60, eth_packet, eth_packet_size);
@@ -331,7 +328,6 @@ int main(void)
                                .payload      = icmp_rx_mdata.payload,
                                .payload_size = icmp_rx_mdata.payload_size,
                                .seq_num      = icmp_rx_mdata.seq_num};
-
                         icmp_build_frame(
                             &icmp,
                             &icmp_tx_mdata,
@@ -344,7 +340,6 @@ int main(void)
                         ip_tx_mdata.version       = IP_VER_4;
                         memcpy(ip_tx_mdata.dest_ip, ip_rx_mdata.src_ip, 4);
                         memcpy(ip_tx_mdata.src_ip, ip.ip_addr, 4);
-
                         ip_build_frame(
                             &ip, &ip_tx_mdata, ip_packet, &ip_packet_size);
 
@@ -355,7 +350,6 @@ int main(void)
                             eth_tx_mdata.dest_mac_addr,
                             eth_rx_mdata.src_mac_addr,
                             6);
-
                         eth_build_frame(
                             &eth, &eth_tx_mdata, eth_packet, &eth_packet_size);
 
@@ -422,7 +416,6 @@ int main(void)
                 memcpy(
                     arp_tx_mdata.dest_mac_addr, arp_rx_mdata.src_mac_addr, 6);
                 memcpy(arp_tx_mdata.dest_ip_addr, arp_rx_mdata.src_ip_addr, 4);
-
                 uint8_t arp_packet_size = 0;
                 arp_build_frame(
                     &arp, &arp_tx_mdata, arp_packet, &arp_packet_size);
@@ -432,7 +425,6 @@ int main(void)
                 eth_tx_mdata.payload_size = arp_packet_size;
                 memcpy(
                     eth_tx_mdata.dest_mac_addr, arp_rx_mdata.src_mac_addr, 6);
-
                 eth_build_frame(
                     &eth, &eth_tx_mdata, eth_packet, &eth_packet_size);
 
