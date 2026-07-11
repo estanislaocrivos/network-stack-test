@@ -12,7 +12,9 @@
 #include "icmp.h"
 #include "ip.h"
 #include "platform.h"
+#include "sntp.h"
 #include "timer.h"
+#include "udp.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -39,6 +41,8 @@
 
 #define MAX_IP_PACKET_SIZE \
     MAX_ETH_FRAME_SIZE - MAX_ETH_HEADER_SIZE - MAX_IP_HEADER_SIZE
+
+#define MAX_UDP_PACKET_SIZE 1400
 
 /* ========================================================================== */
 
@@ -160,7 +164,7 @@ int main(void)
               IPV4_ADDR_BYTE_3,
               IPV4_ADDR_BYTE_4}};
 
-    const struct icmp icmp = {.lost_frames = 0};
+    struct icmp icmp = {.lost_frames = 0};
 
     /* ====================================================================== */
 
@@ -190,8 +194,62 @@ int main(void)
 
     /* ====================================================================== */
 
-    uint8_t  eth_frame[MAX_ETH_FRAME_SIZE];
-    uint16_t eth_frame_size = 0;
+    uint8_t  eth_packet[MAX_ETH_FRAME_SIZE] = {0};
+    uint16_t eth_packet_size                = 0;
+
+    uint8_t  ip_packet[MAX_IP_PACKET_SIZE] = {0};
+    uint16_t ip_packet_size                = 0;
+
+    uint8_t  icmp_packet[MAX_ICMP_PACKET_SIZE] = {0};
+    uint16_t icmp_packet_size                  = 0;
+
+    uint8_t  udp_packet[MAX_UDP_PACKET_SIZE] = {0};
+    uint16_t udp_packet_size                 = 0;
+
+    /* ====================================================================== */
+
+    struct ip_tx_metadata ip_tx_mdata
+        = {.dest_ip = {162, 159, 200, 1},
+           .src_ip
+           = {IPV4_ADDR_BYTE_1,
+              IPV4_ADDR_BYTE_2,
+              IPV4_ADDR_BYTE_3,
+              IPV4_ADDR_BYTE_4}};
+    uint8_t                 sntp_frame[64]  = {0};
+    uint8_t                 sntp_frame_size = 0;
+    struct sntp_tx_metadata sntp_tx_mdata   = {.header = {0, 4, 3, 0, 0, 0}};
+    sntp_build_frame(&sntp_tx_mdata, sntp_frame, &sntp_frame_size);
+
+    struct udp             udp = {0};
+    struct udp_tx_metadata udp_tx_mdata
+        = {.ip_mdata      = &ip_tx_mdata,
+           .dest_port_num = 123,
+           .src_port_num  = 0,
+           .payload       = sntp_frame,
+           sntp_frame_size};
+
+    udp_build_frame(&udp, &udp_tx_mdata, udp_packet, &udp_packet_size);
+
+    ip_tx_mdata.payload       = udp_packet;
+    ip_tx_mdata.payload_size  = udp_packet_size;
+    ip_tx_mdata.pld_prot_type = IP_PLD_UDP;
+    ip_tx_mdata.version       = IP_VER_4;
+
+    ip_build_frame(&ip, &ip_tx_mdata, ip_packet, &ip_packet_size);
+
+    struct eth_tx_metadata eth_tx_mdata
+        = {.payload_type = ETH_PLD_IPV4,
+           .payload      = ip_packet,
+           .payload_size = ip_packet_size};
+
+    const uint8_t gateway_mac[] = {0xD0, 0xEA, 0x11, 0x58, 0x99, 0x77};
+    memcpy(eth_tx_mdata.dest_mac_addr, gateway_mac, 6);
+
+    eth_build_frame(&eth, &eth_tx_mdata, eth_packet, &eth_packet_size);
+
+    enc28j60_transmit_packet(&enc28j60, eth_packet, eth_packet_size);
+
+    /* ====================================================================== */
 
     while (1)
     {
@@ -203,18 +261,19 @@ int main(void)
         }
 
         uint16_t eth_pkt_size = 0;
-        if (enc28j60_receive_packet(&enc28j60, eth_frame, &eth_pkt_size))
+        if (enc28j60_receive_packet(&enc28j60, eth_packet, &eth_pkt_size))
         {
             continue;
         }
 
         struct eth_rx_metadata eth_rx_mdata = {0};
-        if (eth_process_frame(&eth, eth_frame, eth_pkt_size, &eth_rx_mdata))
+        if (eth_process_frame(&eth, eth_packet, eth_pkt_size, &eth_rx_mdata))
         {
             continue;
         }
 
-#if 0
+        /* ================================================================== */
+
         char   buf[128];
         size_t len = snprintf(
             buf,
@@ -222,22 +281,21 @@ int main(void)
             "DA: %02X:%02X:%02X:%02X:%02X:%02X "
             "SA: %02X:%02X:%02X:%02X:%02X:%02X "
             "Type: %02X%02X\r\n",
-            eth_frame[0],
-            eth_frame[1],
-            eth_frame[2],
-            eth_frame[3],
-            eth_frame[4],
-            eth_frame[5],
-            eth_frame[6],
-            eth_frame[7],
-            eth_frame[8],
-            eth_frame[9],
-            eth_frame[10],
-            eth_frame[11],
-            eth_frame[12],
-            eth_frame[13]);
+            eth_packet[0],
+            eth_packet[1],
+            eth_packet[2],
+            eth_packet[3],
+            eth_packet[4],
+            eth_packet[5],
+            eth_packet[6],
+            eth_packet[7],
+            eth_packet[8],
+            eth_packet[9],
+            eth_packet[10],
+            eth_packet[11],
+            eth_packet[12],
+            eth_packet[13]);
         serial_log.ops->transmit(&serial_log, (uint8_t*)buf, len);
-#endif
 
         /* ================================================================== */
 
@@ -266,9 +324,6 @@ int main(void)
 
                     if (icmp_rx_mdata.type == ICMP_ECHO_REQUEST)
                     {
-                        uint8_t  icmp_packet[MAX_ICMP_PACKET_SIZE] = {0};
-                        uint16_t icmp_packet_size                  = 0;
-
                         struct icmp_tx_metadata icmp_tx_mdata
                             = {.type         = ICMP_ECHO_REPLY,
                                .code         = icmp_rx_mdata.code,
@@ -283,39 +338,65 @@ int main(void)
                             icmp_packet,
                             &icmp_packet_size);
 
-                        uint8_t  ip_packet[MAX_IP_PACKET_SIZE] = {0};
-                        uint16_t ip_packet_size                = 0;
-
-                        struct ip_tx_metadata ip_tx_mdata
-                            = {.payload       = icmp_packet,
-                               .payload_size  = icmp_packet_size,
-                               .pld_prot_type = IP_PLD_ICMP,
-                               .version       = IP_VER_4};
+                        ip_tx_mdata.payload       = icmp_packet;
+                        ip_tx_mdata.payload_size  = icmp_packet_size;
+                        ip_tx_mdata.pld_prot_type = IP_PLD_ICMP;
+                        ip_tx_mdata.version       = IP_VER_4;
                         memcpy(ip_tx_mdata.dest_ip, ip_rx_mdata.src_ip, 4);
                         memcpy(ip_tx_mdata.src_ip, ip.ip_addr, 4);
 
                         ip_build_frame(
                             &ip, &ip_tx_mdata, ip_packet, &ip_packet_size);
 
-                        struct eth_tx_metadata eth_tx_mdata
-                            = {.payload_type = ETH_PLD_IPV4,
-                               .payload      = ip_packet,
-                               .payload_size = ip_packet_size};
+                        eth_tx_mdata.payload_type = ETH_PLD_IPV4;
+                        eth_tx_mdata.payload      = ip_packet;
+                        eth_tx_mdata.payload_size = ip_packet_size;
                         memcpy(
                             eth_tx_mdata.dest_mac_addr,
                             eth_rx_mdata.src_mac_addr,
                             6);
 
                         eth_build_frame(
-                            &eth, &eth_tx_mdata, eth_frame, &eth_frame_size);
+                            &eth, &eth_tx_mdata, eth_packet, &eth_packet_size);
 
                         enc28j60_transmit_packet(
-                            &enc28j60, eth_frame, eth_frame_size);
+                            &enc28j60, eth_packet, eth_packet_size);
                     }
                 }
                 if (ip_rx_mdata.pld_prot_type == IP_PLD_UDP)
                 {
-                    /* Process UDP frame */
+                    struct udp_rx_metadata udp_rx_mdata = {0};
+                    udp_rx_mdata.ip_mdata               = &ip_rx_mdata;
+
+                    if (udp_process_frame(
+                            &udp,
+                            ip_rx_mdata.payload,
+                            ip_rx_mdata.payload_size,
+                            &udp_rx_mdata))
+                    {
+                        continue;
+                    }
+
+                    if (udp_rx_mdata.src_port_num == NTP_SERVER_PORT)
+                    {
+                        struct sntp_rx_metadata sntp_rx_mdata = {0};
+                        if (!sntp_process_frame(
+                                (uint8_t*)udp_rx_mdata.payload,
+                                (uint8_t)udp_rx_mdata.payload_size,
+                                &sntp_rx_mdata))
+                        {
+                            uint32_t unix_time = sntp_rx_mdata.tx_timestamp_int
+                                                 - 2208988800UL;
+                            char    log_buf[32];
+                            uint8_t log_len = (uint8_t)snprintf(
+                                log_buf,
+                                sizeof(log_buf),
+                                "unix: %lu\r\n",
+                                (unsigned long)unix_time);
+                            serial_log.ops->transmit(
+                                &serial_log, (uint8_t*)log_buf, log_len);
+                        }
+                    }
                 }
             }
         }
@@ -346,17 +427,17 @@ int main(void)
                 arp_build_frame(
                     &arp, &arp_tx_mdata, arp_packet, &arp_packet_size);
 
-                struct eth_tx_metadata eth_tx_mdata
-                    = {.payload_type = ETH_PLD_ARP,
-                       .payload      = arp_packet,
-                       .payload_size = arp_packet_size};
+                eth_tx_mdata.payload_type = ETH_PLD_ARP;
+                eth_tx_mdata.payload      = arp_packet;
+                eth_tx_mdata.payload_size = arp_packet_size;
                 memcpy(
                     eth_tx_mdata.dest_mac_addr, arp_rx_mdata.src_mac_addr, 6);
 
                 eth_build_frame(
-                    &eth, &eth_tx_mdata, eth_frame, &eth_frame_size);
+                    &eth, &eth_tx_mdata, eth_packet, &eth_packet_size);
 
-                enc28j60_transmit_packet(&enc28j60, eth_frame, eth_frame_size);
+                enc28j60_transmit_packet(
+                    &enc28j60, eth_packet, eth_packet_size);
             }
         }
     }

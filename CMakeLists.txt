@@ -65,6 +65,7 @@ set(DRIVER_SOURCES
     ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/uip/src/eth.c
     ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/uip/src/ip.c
     ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/uip/src/icmp.c
+    ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/uip/src/udp.c
     ${CMAKE_SOURCE_DIR}/external/c-libraries/libraries/uip/src/utils.c
 )
 
