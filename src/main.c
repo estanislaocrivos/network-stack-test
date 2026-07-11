@@ -255,57 +255,67 @@ int main(void)
 
             if (ip_is_pkt_for_me(&ip, &ip_rx_mdata))
             {
-                struct icmp_rx_metadata icmp_rx_mdata = {0};
-                icmp_process_frame(
-                    &icmp,
-                    ip_rx_mdata.payload,
-                    ip_rx_mdata.payload_size,
-                    &icmp_rx_mdata);
-
-                if (icmp_rx_mdata.type == ICMP_ECHO_REQUEST)
+                if (ip_rx_mdata.pld_prot_type == IP_PLD_ICMP)
                 {
-                    uint8_t  icmp_packet[MAX_ICMP_PACKET_SIZE] = {0};
-                    uint16_t icmp_packet_size                  = 0;
+                    struct icmp_rx_metadata icmp_rx_mdata = {0};
+                    icmp_process_frame(
+                        &icmp,
+                        ip_rx_mdata.payload,
+                        ip_rx_mdata.payload_size,
+                        &icmp_rx_mdata);
 
-                    struct icmp_tx_metadata icmp_tx_mdata
-                        = {.type         = ICMP_ECHO_REPLY,
-                           .code         = icmp_rx_mdata.code,
-                           .id           = icmp_rx_mdata.id,
-                           .payload      = icmp_rx_mdata.payload,
-                           .payload_size = icmp_rx_mdata.payload_size,
-                           .seq_num      = icmp_rx_mdata.seq_num};
+                    if (icmp_rx_mdata.type == ICMP_ECHO_REQUEST)
+                    {
+                        uint8_t  icmp_packet[MAX_ICMP_PACKET_SIZE] = {0};
+                        uint16_t icmp_packet_size                  = 0;
 
-                    icmp_build_frame(
-                        &icmp, &icmp_tx_mdata, icmp_packet, &icmp_packet_size);
+                        struct icmp_tx_metadata icmp_tx_mdata
+                            = {.type         = ICMP_ECHO_REPLY,
+                               .code         = icmp_rx_mdata.code,
+                               .id           = icmp_rx_mdata.id,
+                               .payload      = icmp_rx_mdata.payload,
+                               .payload_size = icmp_rx_mdata.payload_size,
+                               .seq_num      = icmp_rx_mdata.seq_num};
 
-                    uint8_t  ip_packet[MAX_IP_PACKET_SIZE] = {0};
-                    uint16_t ip_packet_size                = 0;
+                        icmp_build_frame(
+                            &icmp,
+                            &icmp_tx_mdata,
+                            icmp_packet,
+                            &icmp_packet_size);
 
-                    struct ip_tx_metadata ip_tx_mdata
-                        = {.payload       = icmp_packet,
-                           .payload_size  = icmp_packet_size,
-                           .pld_prot_type = IP_PLD_ICMP,
-                           .version       = IP_VER_4};
-                    memcpy(ip_tx_mdata.dest_ip, ip_rx_mdata.src_ip, 4);
-                    memcpy(ip_tx_mdata.src_ip, ip.ip_addr, 4);
+                        uint8_t  ip_packet[MAX_IP_PACKET_SIZE] = {0};
+                        uint16_t ip_packet_size                = 0;
 
-                    ip_build_frame(
-                        &ip, &ip_tx_mdata, ip_packet, &ip_packet_size);
+                        struct ip_tx_metadata ip_tx_mdata
+                            = {.payload       = icmp_packet,
+                               .payload_size  = icmp_packet_size,
+                               .pld_prot_type = IP_PLD_ICMP,
+                               .version       = IP_VER_4};
+                        memcpy(ip_tx_mdata.dest_ip, ip_rx_mdata.src_ip, 4);
+                        memcpy(ip_tx_mdata.src_ip, ip.ip_addr, 4);
 
-                    struct eth_tx_metadata eth_tx_mdata
-                        = {.payload_type = ETH_PLD_IPV4,
-                           .payload      = ip_packet,
-                           .payload_size = ip_packet_size};
-                    memcpy(
-                        eth_tx_mdata.dest_mac_addr,
-                        eth_rx_mdata.src_mac_addr,
-                        6);
+                        ip_build_frame(
+                            &ip, &ip_tx_mdata, ip_packet, &ip_packet_size);
 
-                    eth_build_frame(
-                        &eth, &eth_tx_mdata, eth_frame, &eth_frame_size);
+                        struct eth_tx_metadata eth_tx_mdata
+                            = {.payload_type = ETH_PLD_IPV4,
+                               .payload      = ip_packet,
+                               .payload_size = ip_packet_size};
+                        memcpy(
+                            eth_tx_mdata.dest_mac_addr,
+                            eth_rx_mdata.src_mac_addr,
+                            6);
 
-                    enc28j60_transmit_packet(
-                        &enc28j60, eth_frame, eth_frame_size);
+                        eth_build_frame(
+                            &eth, &eth_tx_mdata, eth_frame, &eth_frame_size);
+
+                        enc28j60_transmit_packet(
+                            &enc28j60, eth_frame, eth_frame_size);
+                    }
+                }
+                if (ip_rx_mdata.pld_prot_type == IP_PLD_UDP)
+                {
+                    /* Process UDP frame */
                 }
             }
         }
