@@ -30,7 +30,6 @@ struct timespec
 
 struct sntp_tx_metadata
 {
-    uint16_t                  port;
     struct timespec           ts;
     struct sntp_packet_header header;
     uint32_t                  root_delay;
@@ -57,12 +56,14 @@ struct sntp_rx_metadata
 /* ========================================================================== */
 
 int8_t sntp_process_frame(
-    uint8_t* rx_frame, uint16_t rx_frame_size, struct sntp_rx_metadata* mdata);
+    const uint8_t*           rx_frame,
+    uint8_t                  rx_frame_size,
+    struct sntp_rx_metadata* mdata);
 
 int8_t sntp_build_frame(
     const struct sntp_tx_metadata* mdata,
     uint8_t*                       tx_frame,
-    uint16_t*                      tx_frame_size);
+    uint8_t*                       tx_frame_size);
 
 /* ========================================================================== */
 

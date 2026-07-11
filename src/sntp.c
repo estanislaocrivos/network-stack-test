@@ -84,7 +84,9 @@ static void sntp_build_packet_header(
 /* ========================================================================== */
 
 int8_t sntp_process_frame(
-    uint8_t* rx_frame, uint16_t rx_frame_size, struct sntp_rx_metadata* mdata)
+    const uint8_t*           rx_frame,
+    uint8_t                  rx_frame_size,
+    struct sntp_rx_metadata* mdata)
 {
     if (rx_frame == NULL || mdata == NULL)
     {
@@ -112,7 +114,7 @@ int8_t sntp_process_frame(
 int8_t sntp_build_frame(
     const struct sntp_tx_metadata* mdata,
     uint8_t*                       tx_frame,
-    uint16_t*                      tx_frame_size)
+    uint8_t*                       tx_frame_size)
 {
     if (mdata == NULL || tx_frame == NULL || tx_frame_size == NULL)
     {
