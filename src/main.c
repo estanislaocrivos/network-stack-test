@@ -49,7 +49,7 @@
 static int8_t stm32f4xx_delay_ms(const struct timer* self, uint16_t ms)
 {
     (void)self;
-    for (volatile uint32_t i = 0; i < 84000 * ms; i++)
+    for (volatile uint32_t i = 0; i < 84000UL * ms; i++)
         __NOP();
     return 0;
 }
@@ -57,7 +57,7 @@ static int8_t stm32f4xx_delay_ms(const struct timer* self, uint16_t ms)
 static int8_t stm32f4xx_delay_us(const struct timer* self, uint16_t us)
 {
     (void)self;
-    for (volatile uint32_t i = 0; i < 84 * us; i++)
+    for (volatile uint32_t i = 0; i < 84U * us; i++)
         __NOP();
     return 0;
 }
@@ -109,9 +109,9 @@ int main(void)
 
     /* Reset ENC28J60 */
     enc28j60_rst.ops->set_state(&enc28j60_rst, false);
-    stm32f4xx_delay_ms(NULL, 1);
+    stm32f4xx_delay_ms(NULL, 100);
     enc28j60_rst.ops->set_state(&enc28j60_rst, true);
-    stm32f4xx_delay_ms(NULL, 1);
+    stm32f4xx_delay_ms(NULL, 100);
 
     struct enc28j60 enc28j60
         = {.spi_bus = &spi,
@@ -190,7 +190,7 @@ int main(void)
 
     lcd_initialize(&lcd);
     lcd_go_to_index(&lcd, 0, 0);
-    lcd_print_string(&lcd, "Hello, world!");
+    lcd_print_string(&lcd, "Hello, cup!");
 
     /* ====================================================================== */
 
@@ -225,7 +225,7 @@ int main(void)
     struct udp_tx_metadata udp_tx_mdata
         = {.ip_mdata      = &ip_tx_mdata,
            .dest_port_num = 123,
-           .src_port_num  = 0,
+           .src_port_num  = 12300,
            .payload       = sntp_packet,
            sntp_packet_size};
     udp_build_frame(&udp, &udp_tx_mdata, udp_packet, &udp_packet_size);
@@ -244,7 +244,16 @@ int main(void)
     memcpy(eth_tx_mdata.dest_mac_addr, gateway_mac, 6);
     eth_build_frame(&eth, &eth_tx_mdata, eth_packet, &eth_packet_size);
 
-    enc28j60_transmit_packet(&enc28j60, eth_packet, eth_packet_size);
+    char    dbg[32];
+    uint8_t dbg_len = (uint8_t)snprintf(
+        dbg, sizeof(dbg), "eth_size: %u\r\n", eth_packet_size);
+    serial_log.ops->transmit(&serial_log, (uint8_t*)dbg, dbg_len);
+
+    int8_t err
+        = enc28j60_transmit_packet(&enc28j60, eth_packet, eth_packet_size);
+
+    dbg_len = (uint8_t)snprintf(dbg, sizeof(dbg), "return: %u\r\n", err);
+    serial_log.ops->transmit(&serial_log, (uint8_t*)dbg, dbg_len);
 
     /* ====================================================================== */
 
