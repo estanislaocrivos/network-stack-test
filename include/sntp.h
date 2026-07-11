@@ -4,6 +4,7 @@
 /* ========================================================================== */
 
 #include <stdint.h>
+#include <time.h>
 
 /* ========================================================================== */
 
@@ -22,11 +23,11 @@ struct sntp_packet_header
     uint8_t precision;
 };
 
-struct timespec
-{
-    uint32_t tv_sec;
-    uint32_t tv_nsec;
-};
+// struct timespec
+// {
+//     uint32_t tv_sec;
+//     uint32_t tv_nsec;
+// };
 
 struct sntp_tx_metadata
 {

@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 /* ========================================================================== */
 
@@ -190,7 +191,6 @@ int main(void)
 
     lcd_initialize(&lcd);
     lcd_go_to_index(&lcd, 0, 0);
-    lcd_print_string(&lcd, "Hello, cup!");
 
     /* ====================================================================== */
 
@@ -244,16 +244,7 @@ int main(void)
     memcpy(eth_tx_mdata.dest_mac_addr, gateway_mac, 6);
     eth_build_frame(&eth, &eth_tx_mdata, eth_packet, &eth_packet_size);
 
-    char    dbg[32];
-    uint8_t dbg_len = (uint8_t)snprintf(
-        dbg, sizeof(dbg), "eth_size: %u\r\n", eth_packet_size);
-    serial_log.ops->transmit(&serial_log, (uint8_t*)dbg, dbg_len);
-
-    int8_t err
-        = enc28j60_transmit_packet(&enc28j60, eth_packet, eth_packet_size);
-
-    dbg_len = (uint8_t)snprintf(dbg, sizeof(dbg), "return: %u\r\n", err);
-    serial_log.ops->transmit(&serial_log, (uint8_t*)dbg, dbg_len);
+    enc28j60_transmit_packet(&enc28j60, eth_packet, eth_packet_size);
 
     /* ====================================================================== */
 
@@ -390,14 +381,19 @@ int main(void)
                         {
                             uint32_t unix_time = sntp_rx_mdata.tx_timestamp_int
                                                  - 2208988800UL;
-                            char    log_buf[32];
-                            uint8_t log_len = (uint8_t)snprintf(
-                                log_buf,
-                                sizeof(log_buf),
-                                "unix: %lu\r\n",
-                                (unsigned long)unix_time);
-                            serial_log.ops->transmit(
-                                &serial_log, (uint8_t*)log_buf, log_len);
+                            time_t     t  = (time_t)unix_time;
+                            struct tm* dt = gmtime(&t);
+                            char       lcd_buf[32];
+                            snprintf(
+                                lcd_buf,
+                                sizeof(lcd_buf),
+                                "%02d/%02d/%04d %02d:%02d",
+                                dt->tm_mday,
+                                dt->tm_mon + 1,
+                                dt->tm_year + 1900,
+                                dt->tm_hour - 3,
+                                dt->tm_min);
+                            lcd_print_string(&lcd, lcd_buf);
                         }
                     }
                 }
