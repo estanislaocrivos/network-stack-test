@@ -134,8 +134,7 @@ int main(void)
               MAC_ADDR_BYTE_5,
               MAC_ADDR_BYTE_6},
            .rx_buf_end_addr = ENC28J60_RXBUF_END_ADDR,
-           .erdpt           = 0,
-           .was_initialized = false};
+           .private         = {0}};
     enc28j60_init(&enc28j60);
 
     const struct eth eth
@@ -402,7 +401,7 @@ int main(void)
                                 &sntp_rx_mdata))
                         {
                             uint32_t unix_time = sntp_rx_mdata.tx_timestamp_int
-                                                 - 2208988800UL;
+                                                 - 2208988800UL - 3 * 60 * 60;
                             time_t     t  = (time_t)unix_time;
                             struct tm* dt = gmtime(&t);
                             char       lcd_buf[32];
@@ -413,7 +412,7 @@ int main(void)
                                 dt->tm_mday,
                                 dt->tm_mon + 1,
                                 dt->tm_year + 1900,
-                                dt->tm_hour - 3,
+                                dt->tm_hour,
                                 dt->tm_min);
                             lcd_print_string(&lcd, lcd_buf);
                         }
