@@ -41,7 +41,7 @@
 #define MAX_ICMP_PACKET_SIZE    1472
 
 #define MAX_IP_PACKET_SIZE \
-    MAX_ETH_FRAME_SIZE - MAX_ETH_HEADER_SIZE - MAX_IP_HEADER_SIZE
+    MAX_ETH_FRAME_SIZE - MAX_ETH_HDR_SIZE - MAX_IP_HEADER_SIZE
 
 #define MAX_UDP_PACKET_SIZE 1400
 
@@ -216,8 +216,6 @@ int main(void)
 
     static uint8_t sntp_packet[64]  = {0};
     uint8_t        sntp_packet_size = 0;
-
-    /* ====================================================================== */
 
     /* ====================================================================== */
 
