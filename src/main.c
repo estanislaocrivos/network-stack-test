@@ -5,16 +5,14 @@
 #include "arp.h"
 #include "clock.h"
 #include "enc28j60.h"
-#include "eth.h"
 #include "hd44780.h"
 #include "hd44780_i2c.h"
 #include "i2c.h"
-#include "icmp.h"
-#include "ip.h"
 #include "platform.h"
 #include "sntp.h"
+#include "stm32f4xx_systick.h"
 #include "timer.h"
-#include "udp.h"
+#include "uip.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -38,19 +36,8 @@
 
 #define ENC28J60_RXBUF_END_ADDR 0x19BF
 
-#define MAX_ICMP_PACKET_SIZE    1472
-
-#define MAX_IP_PACKET_SIZE \
-    MAX_ETH_FRAME_SIZE - MAX_ETH_HDR_SIZE - MAX_IP_HEADER_SIZE
-
-#define MAX_UDP_PACKET_SIZE 1400
-
-static volatile uint32_t ticks_ms = 0;
-
-void SysTick_Handler(void)
-{
-    ticks_ms++;
-}
+#define ICMP_ECHO_REQUEST       8
+#define ICMP_ECHO_REPLY         0
 
 /* ========================================================================== */
 
@@ -74,7 +61,7 @@ int main(void)
 {
     clock_init(CLOCK_84MHZ);
 
-    SysTick_Config(84000000 / 1000); /* 1ms a 84MHz */
+    stm32f4xx_systick_init(84000000);
 
     struct mcu mcu = {.ops = PLATFORM_MCU_OPS, .was_initialized = false};
     mcu.ops->initialize(&mcu);
@@ -202,28 +189,20 @@ int main(void)
 
     /* ====================================================================== */
 
-    static uint8_t eth_packet[MAX_ETH_FRAME_SIZE] = {0};
-    uint16_t       eth_packet_size                = 0;
-
-    static uint8_t ip_packet[MAX_IP_PACKET_SIZE] = {0};
-    uint16_t       ip_packet_size                = 0;
-
-    static uint8_t icmp_packet[MAX_ICMP_PACKET_SIZE] = {0};
-    uint16_t       icmp_packet_size                  = 0;
-
-    static uint8_t udp_packet[MAX_UDP_PACKET_SIZE] = {0};
-    uint16_t       udp_packet_size                 = 0;
-
-    static uint8_t sntp_packet[64]  = {0};
-    uint8_t        sntp_packet_size = 0;
+    static uint8_t eth_packet[MAX_ETH_PKT_SIZE] = {0};
+    uint16_t       eth_packet_size              = 0;
+    uint16_t       ip_packet_size               = 0;
+    uint16_t       icmp_packet_size             = 0;
+    uint16_t       udp_packet_size              = 0;
+    uint8_t        sntp_packet_size             = 0;
 
     /* ====================================================================== */
 
-    uint32_t last_sntp_ms = ticks_ms;
+    uint32_t last_sntp_ms = stm32f4xx_get_tick_ms();
 
     while (1)
     {
-        if (ticks_ms - last_sntp_ms > 2000) /* retry cada 2s */
+        if (stm32f4xx_get_tick_ms() - last_sntp_ms > 2000) /* retry cada 2s */
         {
             struct ip_tx_metadata ip_tx_mdata
                 = {.dest_ip = {162, 159, 200, 1},
@@ -234,26 +213,34 @@ int main(void)
                       IPV4_ADDR_BYTE_4}};
             struct sntp_tx_metadata sntp_tx_mdata
                 = {.header = {0, 4, 3, 0, 0, 0}};
-            sntp_build_frame(&sntp_tx_mdata, sntp_packet, &sntp_packet_size);
+            sntp_build_frame(
+                &sntp_tx_mdata,
+                eth_packet + UDP_PAYLOAD_OFST,
+                &sntp_packet_size);
 
             struct udp             udp = {0};
             struct udp_tx_metadata udp_tx_mdata
                 = {.ip_mdata      = &ip_tx_mdata,
                    .dest_port_num = 123,
                    .src_port_num  = 12300,
-                   .payload       = sntp_packet,
-                   sntp_packet_size};
-            udp_build_frame(&udp, &udp_tx_mdata, udp_packet, &udp_packet_size);
+                   .payload       = eth_packet + UDP_PAYLOAD_OFST,
+                   .payload_size  = sntp_packet_size};
+            udp_build_frame(
+                &udp,
+                &udp_tx_mdata,
+                eth_packet + UDP_FRAME_OFST,
+                &udp_packet_size);
 
-            ip_tx_mdata.payload       = udp_packet;
+            ip_tx_mdata.payload       = eth_packet + UDP_FRAME_OFST;
             ip_tx_mdata.payload_size  = udp_packet_size;
             ip_tx_mdata.pld_prot_type = IP_PLD_UDP;
             ip_tx_mdata.version       = IP_VER_4;
-            ip_build_frame(&ip, &ip_tx_mdata, ip_packet, &ip_packet_size);
+            ip_build_frame(
+                &ip, &ip_tx_mdata, eth_packet + IP_FRAME_OFST, &ip_packet_size);
 
             struct eth_tx_metadata eth_tx_mdata
                 = {.payload_type = ETH_PLD_IPV4,
-                   .payload      = ip_packet,
+                   .payload      = eth_packet + IP_FRAME_OFST,
                    .payload_size = ip_packet_size};
             const uint8_t gateway_mac[] = {0xD0, 0xEA, 0x11, 0x58, 0x99, 0x77};
             memcpy(eth_tx_mdata.dest_mac_addr, gateway_mac, 6);
@@ -261,11 +248,17 @@ int main(void)
 
             enc28j60_transmit_packet(&enc28j60, eth_packet, eth_packet_size);
 
-            last_sntp_ms = ticks_ms;
+            last_sntp_ms = stm32f4xx_get_tick_ms();
         }
 
         uint8_t epktcnt = 0;
-        enc28j60_get_epktcnt(&enc28j60, &epktcnt);
+        if (enc28j60_get_epktcnt(&enc28j60, &epktcnt))
+        {
+            static const char err_msg[] = "enc28j60_get_epktcnt failed\r\n";
+            serial_log.ops->transmit(
+                &serial_log, (uint8_t*)err_msg, sizeof(err_msg) - 1);
+            continue;
+        }
         if (epktcnt == 0)
         {
             continue;
@@ -345,11 +338,11 @@ int main(void)
                         icmp_build_frame(
                             &icmp,
                             &icmp_tx_mdata,
-                            icmp_packet,
+                            eth_packet + ICMP_FRAME_OFST,
                             &icmp_packet_size);
 
                         struct ip_tx_metadata ip_tx_mdata = {
-                            .payload       = icmp_packet,
+                            .payload       = eth_packet + ICMP_FRAME_OFST,
                             .payload_size  = icmp_packet_size,
                             .pld_prot_type = IP_PLD_ICMP,
                             .version       = IP_VER_4,
@@ -357,11 +350,14 @@ int main(void)
                         memcpy(ip_tx_mdata.dest_ip, ip_rx_mdata.src_ip, 4);
                         memcpy(ip_tx_mdata.src_ip, ip.ip_addr, 4);
                         ip_build_frame(
-                            &ip, &ip_tx_mdata, ip_packet, &ip_packet_size);
+                            &ip,
+                            &ip_tx_mdata,
+                            eth_packet + IP_FRAME_OFST,
+                            &ip_packet_size);
 
                         struct eth_tx_metadata eth_tx_mdata = {
                             .payload_type = ETH_PLD_IPV4,
-                            .payload      = ip_packet,
+                            .payload      = eth_packet + IP_FRAME_OFST,
                             .payload_size = ip_packet_size,
                         };
                         memcpy(
@@ -435,18 +431,20 @@ int main(void)
 
             if (arp_is_request_for_me(&arp, &arp_rx_mdata))
             {
-                uint8_t                arp_packet[ARP_PACKET_SIZE];
                 struct arp_tx_metadata arp_tx_mdata = {.op_type = ARP_REPLY};
                 memcpy(
                     arp_tx_mdata.dest_mac_addr, arp_rx_mdata.src_mac_addr, 6);
                 memcpy(arp_tx_mdata.dest_ip_addr, arp_rx_mdata.src_ip_addr, 4);
                 uint8_t arp_packet_size = 0;
                 arp_build_frame(
-                    &arp, &arp_tx_mdata, arp_packet, &arp_packet_size);
+                    &arp,
+                    &arp_tx_mdata,
+                    eth_packet + ETH_HEADER_SIZE,
+                    &arp_packet_size);
 
                 struct eth_tx_metadata eth_tx_mdata = {
                     .payload_type = ETH_PLD_ARP,
-                    .payload      = arp_packet,
+                    .payload      = eth_packet + ETH_HEADER_SIZE,
                     .payload_size = arp_packet_size,
                 };
                 memcpy(
